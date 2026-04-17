@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Papel &amp; Luna — Sistema POS</title>
+  <meta name="description" content="Sistema de Punto de Venta para Papel &amp; Luna — Gestión de ventas, inventario, clientes y compras.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+</head>
+<body>
+
+  <!-- ORBS DE LUZ ANIMADOS -->
+  <div class="orb-1"></div>
+  <div class="orb-2"></div>
+  <div class="orb-3"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" style="display:none;">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">🌙</span>
+      <span class="sidebar-title">Papel &amp; Luna</span>
+    </div>
+
+    <nav class="nav-menu" role="navigation" aria-label="Menú principal">
+      <div class="nav-section-label">General</div>
+      <a href="#" class="nav-link" data-view="home"     data-roles="admin,cajero">🏠 Inicio</a>
+      <a href="#" class="nav-link" data-view="pos"      data-roles="admin,cajero">🛒 Punto de Venta</a>
+      <a href="#" class="nav-link" data-view="history"  data-roles="admin,cajero">📊 Historial</a>
+      <a href="#" class="nav-link" data-view="missing"  data-roles="admin,cajero">📋 Faltantes</a>
+      <a href="#" class="nav-link" data-view="clientes" data-roles="admin,cajero">👥 Clientes</a>
+
+      <div class="nav-section-label admin-only">Inventario</div>
+      <a href="#" class="nav-link admin-only" data-view="products"    data-roles="admin">📦 Productos</a>
+      <a href="#" class="nav-link admin-only" data-view="categorias"  data-roles="admin">🏷️ Categorías</a>
+      <a href="#" class="nav-link admin-only" data-view="compras"     data-roles="admin">🚚 Compras</a>
+      <a href="#" class="nav-link admin-only" data-view="proveedores" data-roles="admin">🏢 Proveedores</a>
+
+      <div class="nav-section-label admin-only">Administración</div>
+      <a href="#" class="nav-link admin-only" data-view="reports" data-roles="admin">📈 Reportes</a>
+      <a href="#" class="nav-link admin-only" data-view="users"   data-roles="admin">👤 Usuarios</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>© 2026 Papel &amp; Luna</p>
+      <p>Sistema POS v2.0</p>
+    </div>
+  </aside>
+
+  <!-- ÁREA PRINCIPAL (header + contenido) -->
+  <div class="app-content" id="app-content">
+
+    <!-- HEADER -->
+    <header class="header" id="header" style="display:none;">
+      <div class="header-left">
+        <!-- Toggle sidebar — visible siempre -->
+        <button class="sidebar-toggle-btn" id="sidebar-toggle" aria-label="Toggle sidebar" title="Mostrar/ocultar menú">
+          <span class="toggle-icon">☰</span>
+        </button>
+      </div>
+      <div class="header-center">
+        <h1>Papel &amp; Luna</h1>
+      </div>
+      <div class="header-right" style="display: flex; align-items: center; gap: 1rem;">
+        <div id="user-info"></div>
+        <button class="dark-mode-btn" title="Cambiar tema" id="theme-btn">🌙</button>
+      </div>
+    </header>
+
+    <!-- VISTAS -->
+    <main id="views-container" class="views-area" style="display:none;">
+      <div id="view-home"        class="view"></div>
+      <div id="view-pos"         class="view"></div>
+      <div id="view-history"     class="view"></div>
+      <div id="view-missing"     class="view"></div>
+      <div id="view-clientes"    class="view"></div>
+      <div id="view-products"    class="view"></div>
+      <div id="view-categorias"  class="view"></div>
+      <div id="view-compras"     class="view"></div>
+      <div id="view-proveedores" class="view"></div>
+      <div id="view-reports"     class="view"></div>
+      <div id="view-users"       class="view"></div>
+    </main>
+
+  </div><!-- /app-content -->
+
+  <!-- OVERLAY (mobile sidebar) -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" aria-label="Cerrar">&times;</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIONES -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- SCRIPTS -->
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/sales.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

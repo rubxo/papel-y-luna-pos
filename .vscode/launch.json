@@ -1,0 +1,10 @@
+{    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Open index.html",
+            "file": "c:\\Users\\rubiu\\OneDrive\\Desktop\\UNI\\S3\\WEB-DEV\\Tarea 23\\index.html"
+        }
+    ]
+}
