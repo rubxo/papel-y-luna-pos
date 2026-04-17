@@ -1965,12 +1965,3 @@ select option {
     grid-template-columns: 1fr 1fr;
   }
 }
-
-<!-- Credenciales de prueba -->
-<div style="
-  display: none; /* <--- Agrega esta línea */
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.07);
-  /* ... resto de los estilos ... */
-">
