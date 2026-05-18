@@ -1,223 +1,158 @@
-// ===== REPORTS & USER MANAGEMENT =====
+function parseAppDate(value) {
+  if (!value) return null;
+  if (value instanceof Date) return value;
 
-// User Management
-function createUser(nombre, usuarioLogin, rol, contraseña) {
-  if (!nombre || !usuarioLogin || !rol || !contraseña) { showToast("Datos incompletos", "error"); return null; }
-  const usuario = {
-    id: `USER-${Date.now()}`,
-    nombre: nombre,
-    usuario: usuarioLogin,   // campo requerido para el login
-    rol: rol,                // 'admin' o 'cajero'
-    contraseña: contraseña,
-    activo: true,
-    fechaCreacion: new Date().toLocaleDateString()
-  };
-  return usuario;
-}
-
-async function saveUser(usuario) {
-  state.usuarios.push(usuario);
-  const saved = await saveSheetData("usuarios", usuario);
-  if (saved) {
-    showToast("Usuario creado exitosamente", "success");
-    return true;
-  } else {
-    showToast("Error guardando usuario", "error");
-    return false;
+  const raw = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    const [y, m, d] = raw.split("-").map(Number);
+    return new Date(y, m - 1, d);
   }
+
+  const match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (match) return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function loginUser(nombre, contraseña) {
-  const usuario = state.usuarios.find(u => u.nombre === nombre && u.contraseña === contraseña);
-  if (usuario) {
-    state.usuarioActual = usuario;
-    state.rolActual = usuario.rol;
-    showToast(`Bienvenido ${usuario.nombre}`, "success");
-    return true;
-  } else {
-    showToast("Usuario o contraseña incorrectos", "error");
-    return false;
-  }
+function isBetweenDates(value, desde, hasta) {
+  const date = parseAppDate(value);
+  if (!date) return true;
+  const start = desde ? parseAppDate(desde) : null;
+  const end = hasta ? parseAppDate(hasta) : null;
+  if (start) start.setHours(0, 0, 0, 0);
+  if (end) end.setHours(23, 59, 59, 999);
+  return (!start || date >= start) && (!end || date <= end);
 }
 
-function logoutUser() {
-  state.usuarioActual = null;
-  state.rolActual = null;
-  state.logueado = false;
-  localStorage.removeItem("usuarioActual");
-  showToast("Sesión cerrada", "success");
-  setTimeout(() => {
-    mostrarPantallaLogin();
-  }, 1500);
+function getItemsFromRecord(record) {
+  if (Array.isArray(record.items)) return record.items;
+  if (!record.itemsJson) return [];
+  try { return JSON.parse(record.itemsJson); } catch (e) { return []; }
 }
 
-// Reports Generation
+function money(value) {
+  return Number(value || 0);
+}
+
 function generateSalesReport(desde, hasta) {
-  const ventasFiltradas = state.ventas.filter(v => {
-    const fecha = new Date(v.fecha);
-    const desdeDate = new Date(desde);
-    const hastaDate = new Date(hasta);
-    return fecha >= desdeDate && fecha <= hastaDate;
-  });
-
-  let totalVentas = 0;
-  let totalDescuentos = 0;
-  let totalImpuestos = 0;
-  let totalArticulos = 0;
-
-  ventasFiltradas.forEach(venta => {
-    totalVentas += parseFloat(venta.total);
-    totalImpuestos += parseFloat(venta.impuesto);
-    const items = JSON.parse(venta.itemsJson);
-    totalArticulos += items.reduce((sum, item) => sum + item.cantidad, 0);
-  });
+  const ventasFiltradas = state.ventas.filter(v => isBetweenDates(v.fecha, desde, hasta) && v.estado !== "anulada");
+  const totalVentas = ventasFiltradas.reduce((sum, venta) => sum + money(venta.total), 0);
+  const totalDescuentos = ventasFiltradas.reduce((sum, venta) => sum + money(venta.descuento), 0);
+  const totalImpuestos = ventasFiltradas.reduce((sum, venta) => sum + money(venta.impuesto), 0);
+  const totalArticulos = ventasFiltradas.reduce((sum, venta) => sum + getItemsFromRecord(venta).reduce((s, item) => s + Number(item.cantidad || 0), 0), 0);
 
   return {
     tipo: "Reporte de Ventas",
-    periodo: `${desde} a ${hasta}`,
+    periodo: `${desde || "Inicio"} a ${hasta || "Hoy"}`,
     totalVentas: totalVentas.toFixed(2),
     totalDescuentos: totalDescuentos.toFixed(2),
     totalImpuestos: totalImpuestos.toFixed(2),
-    totalArticulos: totalArticulos,
+    totalArticulos,
     cantidadTransacciones: ventasFiltradas.length,
-    fecha: new Date().toLocaleDateString()
+    ticketPromedio: ventasFiltradas.length ? (totalVentas / ventasFiltradas.length).toFixed(2) : "0.00",
+    fecha: new Date().toLocaleDateString("es-CO")
   };
 }
 
 function generateInventoryReport() {
-  let valorTotal = 0;
-  let productosConBajoStock = [];
+  const productos = state.productos || [];
+  const productosConBajoStock = productos
+    .filter(producto => producto.seguimientoInventario !== false && Number(producto.stock || 0) < 10)
+    .map(producto => ({ nombre: producto.nombre, stock: producto.stock, precio: producto.precio }));
 
-  state.productos.forEach(producto => {
-    if (producto.stock < 10) {
-      productosConBajoStock.push({
-        nombre: producto.nombre,
-        stock: producto.stock,
-        precio: producto.precio
-      });
-    }
-    valorTotal += producto.stock * producto.precio;
-  });
+  const valorTotal = productos.reduce((sum, producto) => sum + Number(producto.stock || 0) * Number(producto.precio || 0), 0);
+  const costoTotal = productos.reduce((sum, producto) => sum + Number(producto.stock || 0) * Number(producto.costo || 0), 0);
 
   return {
     tipo: "Reporte de Inventario",
-    totalProductos: state.productos.length,
+    totalProductos: productos.length,
+    productosAgotados: productos.filter(p => Number(p.stock || 0) === 0).length,
+    productosConBajoStock,
     valorTotalInventario: valorTotal.toFixed(2),
-    productosConBajoStock: productosConBajoStock,
-    fecha: new Date().toLocaleDateString()
+    costoTotalInventario: costoTotal.toFixed(2),
+    gananciaPotencial: (valorTotal - costoTotal).toFixed(2),
+    fecha: new Date().toLocaleDateString("es-CO")
   };
 }
 
 function generateClientReport() {
+  const clientes = state.clientes || [];
   return {
     tipo: "Reporte de Clientes",
-    totalClientes: state.clientes.length,
-    clientesActivos: state.clientes.filter(c => c.activo).length,
-    totalClientesInactivos: state.clientes.filter(c => !c.activo).length,
-    fecha: new Date().toLocaleDateString()
+    totalClientes: clientes.length,
+    clientesActivos: clientes.filter(c => c.activo !== false).length,
+    totalClientesInactivos: clientes.filter(c => c.activo === false).length,
+    fecha: new Date().toLocaleDateString("es-CO")
   };
 }
 
 function generatePurchaseReport(desde, hasta) {
-  const comprasFiltradas = state.compras.filter(c => {
-    const fecha = new Date(c.fecha);
-    const desdeDate = new Date(desde);
-    const hastaDate = new Date(hasta);
-    return fecha >= desdeDate && fecha <= hastaDate;
-  });
-
-  let totalCompras = 0;
-  let totalArticulos = 0;
-
-  comprasFiltradas.forEach(compra => {
-    totalCompras += parseFloat(compra.total);
-    totalArticulos += compra.cantidad;
-  });
+  const comprasFiltradas = (state.compras || []).filter(c => isBetweenDates(c.fecha, desde, hasta));
+  const totalCompras = comprasFiltradas.reduce((sum, compra) => sum + money(compra.total), 0);
+  const totalArticulos = comprasFiltradas.reduce((sum, compra) => sum + getItemsFromRecord(compra).reduce((s, item) => s + Number(item.cantidad || 0), 0), 0);
 
   return {
     tipo: "Reporte de Compras",
-    periodo: `${desde} a ${hasta}`,
+    periodo: `${desde || "Inicio"} a ${hasta || "Hoy"}`,
     totalCompras: totalCompras.toFixed(2),
-    totalArticulos: totalArticulos,
+    totalArticulos,
     cantidadTransacciones: comprasFiltradas.length,
-    fecha: new Date().toLocaleDateString()
+    fecha: new Date().toLocaleDateString("es-CO")
   };
 }
 
 async function saveReport(reporte) {
   state.reportes.push(reporte);
-  const saved = await saveSheetData("reportes", reporte);
-  if (saved) {
-    showToast("Reporte guardado exitosamente", "success");
-    return true;
-  } else {
-    showToast("Error guardando reporte", "error");
-    return false;
-  }
+  saveToLocalStorage("reportes", state.reportes);
+  showToast("Reporte generado", "success");
+  return true;
 }
 
-// Filters & Search
 function filterSalesBy(criteria) {
-  let resultado = state.ventas;
+  let resultado = [...(state.ventas || [])];
 
-  if (criteria.metodoPago) {
-    resultado = resultado.filter(v => v.metodoPago === criteria.metodoPago);
-  }
-
-  if (criteria.desde && criteria.hasta) {
+  if (criteria.buscar) {
+    const q = criteria.buscar.toLowerCase();
     resultado = resultado.filter(v => {
-      const fecha = new Date(v.fecha);
-      const desde = new Date(criteria.desde);
-      const hasta = new Date(criteria.hasta);
-      return fecha >= desde && fecha <= hasta;
+      const items = getItemsFromRecord(v);
+      return String(v.id || "").toLowerCase().includes(q) ||
+        String(v.numero || "").toLowerCase().includes(q) ||
+        String(v.metodoPago || "").toLowerCase().includes(q) ||
+        String(v.estado || "").toLowerCase().includes(q) ||
+        items.some(item => String(item.nombre || "").toLowerCase().includes(q));
     });
   }
 
-  if (criteria.minimo || criteria.maximo) {
-    resultado = resultado.filter(v => {
-      const total = parseFloat(v.total);
-      if (criteria.minimo && total < criteria.minimo) return false;
-      if (criteria.maximo && total > criteria.maximo) return false;
-      return true;
-    });
+  if (criteria.metodoPago) resultado = resultado.filter(v => v.metodoPago === criteria.metodoPago);
+  if (criteria.estado) resultado = resultado.filter(v => (v.estado || "cerrada") === criteria.estado);
+  if (criteria.desde || criteria.hasta) resultado = resultado.filter(v => isBetweenDates(v.fecha, criteria.desde, criteria.hasta));
+
+  if (criteria.minimo !== null && criteria.minimo !== undefined) {
+    resultado = resultado.filter(v => money(v.total) >= Number(criteria.minimo));
+  }
+
+  if (criteria.maximo !== null && criteria.maximo !== undefined) {
+    resultado = resultado.filter(v => money(v.total) <= Number(criteria.maximo));
   }
 
   return resultado;
 }
 
 function filterInventoryBy(criteria) {
-  let resultado = state.productos;
-
-  if (criteria.categoria) {
-    resultado = resultado.filter(p => p.categoria === criteria.categoria);
-  }
-
-  if (criteria.minStock) {
-    resultado = resultado.filter(p => p.stock <= criteria.minStock);
-  }
-
-  if (criteria.buscar) {
-    resultado = resultado.filter(p => 
-      p.nombre.toLowerCase().includes(criteria.buscar.toLowerCase())
-    );
-  }
-
+  let resultado = state.productos || [];
+  if (criteria.categoria) resultado = resultado.filter(p => p.categoria === criteria.categoria);
+  if (criteria.minStock) resultado = resultado.filter(p => Number(p.stock || 0) <= Number(criteria.minStock));
+  if (criteria.buscar) resultado = resultado.filter(p => p.nombre.toLowerCase().includes(criteria.buscar.toLowerCase()));
   return resultado;
 }
 
 function filterClientesBy(criteria) {
-  let resultado = state.clientes;
-
-  if (criteria.activo !== undefined) {
-    resultado = resultado.filter(c => c.activo === criteria.activo);
-  }
-
+  let resultado = state.clientes || [];
+  if (criteria.activo !== undefined) resultado = resultado.filter(c => c.activo === criteria.activo);
   if (criteria.buscar) {
-    resultado = resultado.filter(c => 
-      c.nombre.toLowerCase().includes(criteria.buscar.toLowerCase()) ||
-      c.email.toLowerCase().includes(criteria.buscar.toLowerCase())
-    );
+    const q = criteria.buscar.toLowerCase();
+    resultado = resultado.filter(c => String(c.nombre || "").toLowerCase().includes(q) || String(c.correo || c.email || "").toLowerCase().includes(q));
   }
-
   return resultado;
 }

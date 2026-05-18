@@ -5,10 +5,9 @@ const CONFIG = {
   PORT: 8000,
 
   // URL del backend en producción.
-  // Si el frontend y backend están en el mismo servidor (Railway), dejar null.
-  // Si están separados (Netlify + Railway), poner la URL de Railway aquí:
-  //   _productionApiUrl: "https://tu-backend.up.railway.app/api"
-  _productionApiUrl: null,
+  // IMPORTANTE PARA PRODUCCIÃ“N: AsegÃºrate de cambiar "TU-BACKEND.onrender.com"
+  // por la URL real que te asigne Render al desplegar el backend.
+  _productionApiUrl: "https://TU-BACKEND.onrender.com/api",
 
   // API ENDPOINT — detecta automáticamente local vs producción
   get API_URL() {

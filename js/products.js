@@ -23,32 +23,31 @@ async function createProduct(data) {
   if (error) { showToast(error, "error"); console.error(error); return false; }
 
   const newProduct = {
-    id: `PROD-${Date.now()}`,
     codigo: data.codigo || `P-${Date.now().toString().slice(-4)}`,
     nombre: data.nombre,
     descripcion: data.descripcion || "",
     precio: parseFloat(data.precio),
     costo: parseFloat(data.costo),
     stock: parseInt(data.stock),
+    categoriaId: data.categoriaId || null,
     categoria: data.categoria || "Sin categoría",
-    imagen: data.imagen || "sin-imagen.jpg",
+    imagen: data.imagen || null,
     seguimientoInventario: true
   };
 
   console.log('📝 Objeto producto a guardar:', newProduct);
   
   // Siempre agregamos al estado local primero para que la app se sienta instantánea
-  state.productos.push(newProduct);
+  const savedProduct = await saveSheetData("productos", newProduct);
+  state.productos.push(savedProduct && savedProduct !== true ? savedProduct : { ...newProduct, id: `LOCAL-${Date.now()}` });
   
-  const success = await saveSheetData("productos", newProduct);
-  
-  if (success) {
-    showToast("✅ Producto sincronizado con Google Sheets", "success");
+  if (savedProduct) {
+    showToast("Producto guardado correctamente", "success");
   } else {
     // Si falla la red, ya está en localStorage y en el estado, así que sigue funcionando offline
-    showToast("⚠️ Producto guardado localmente (Sin conexión a Sheets)", "warning");
+    showToast("Producto guardado localmente", "warning");
   }
-  return true;
+  return savedProduct && savedProduct !== true ? savedProduct : true;
 }
 
 async function updateProduct(id, data) {
@@ -64,17 +63,19 @@ async function updateProduct(id, data) {
   product.precio = parseFloat(data.precio);
   product.costo = parseFloat(data.costo);
   product.stock = parseInt(data.stock);
+  product.categoriaId = data.categoriaId !== undefined ? data.categoriaId : product.categoriaId;
   product.categoria = data.categoria || product.categoria;
-  product.imagen = data.imagen || product.imagen;
+  product.imagen = data.imagen !== undefined ? data.imagen : product.imagen;
 
   console.log('📝 Producto actualizado a guardar:', product);
   
-  const success = await saveSheetData("productos", product);
+  const savedProduct = await saveSheetData("productos", product);
+  if (savedProduct && savedProduct !== true) Object.assign(product, savedProduct);
   
-  if (success) {
-    showToast("✅ Producto actualizado en Sheets", "success");
+  if (savedProduct) {
+    showToast("Producto actualizado", "success");
   } else {
-    showToast("⚠️ Producto actualizado localmente (Sin conexión a Sheets)", "warning");
+    showToast("Producto actualizado localmente", "warning");
   }
   return true;
 }

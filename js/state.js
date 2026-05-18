@@ -1,4 +1,4 @@
-﻿const state = {
+const state = {
   productos: [],
   categorias: [],
   clientes: [],
@@ -17,7 +17,6 @@
       id: 'USER-ADMIN-001',
       nombre: 'Administrador',
       usuario: 'admin',
-      contraseña: 'admin123',
       rol: 'admin',
       activo: true,
       fechaCreacion: '01/04/2026'
@@ -26,16 +25,6 @@
       id: 'USER-CAJERO-001',
       nombre: 'Cajero Principal',
       usuario: 'cajero',
-      contraseña: 'cajero123',
-      rol: 'cajero',
-      activo: true,
-      fechaCreacion: '01/04/2026'
-    },
-    {
-      id: 'USER-CAJERO-002',
-      nombre: 'Cajero 2',
-      usuario: 'cajero2',
-      contraseña: 'cajero2023',
       rol: 'cajero',
       activo: true,
       fechaCreacion: '01/04/2026'

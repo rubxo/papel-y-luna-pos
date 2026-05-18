@@ -1797,10 +1797,11 @@ select option {
    VENTAS ABIERTAS (POS)
 ================================================================ */
 .open-sales-section {
-  background: rgba(59, 130, 246, 0.06);
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.05));
+  border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: var(--radius-sm);
   padding: 1rem;
+  margin-bottom: 1rem;
 }
 
 .open-sales-section h4 {
@@ -1810,32 +1811,45 @@ select option {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .open-sales-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .open-sale-card {
   background: var(--glass-light);
   border: 1px solid var(--glass-border);
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: var(--transition);
+  transition: all var(--transition);
+  border-left: 3px solid var(--neon-blue);
 }
 
 .open-sale-card:hover {
-  border-color: var(--border-hover);
+  border-color: var(--neon-blue);
+  background: rgba(59, 130, 246, 0.06);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateX(2px);
+}
+
+.sale-info {
+  flex: 1;
 }
 
 .sale-info strong {
   color: var(--text-main);
   font-size: 0.875rem;
+  display: block;
+  margin-bottom: 0.25rem;
 }
 
 .sale-info small {
@@ -1964,4 +1978,8 @@ select option {
   .quick-access-grid {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+@media print {
+  .no-print { display: none !important; }
 }
