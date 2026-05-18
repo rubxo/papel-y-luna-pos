@@ -7,7 +7,7 @@ const CONFIG = {
   // URL del backend en producción.
   // IMPORTANTE PARA PRODUCCIÃ“N: AsegÃºrate de cambiar "TU-BACKEND.onrender.com"
   // por la URL real que te asigne Render al desplegar el backend.
-  _productionApiUrl: "https://TU-BACKEND.onrender.com/api",
+  _productionApiUrl: "https://papel-y-luna-backend.onrender.com/api",
 
   // API ENDPOINT — detecta automáticamente local vs producción
   get API_URL() {
