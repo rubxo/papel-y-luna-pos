@@ -36,8 +36,12 @@ if (env.nodeEnv === "development") {
     host: env.db.host,
     port: env.db.port,
     dialect: "mysql",
-    logging: false,
-    define: {
+    logging: false,    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    },    define: {
       underscored: true,
       timestamps: true,
       paranoid: false

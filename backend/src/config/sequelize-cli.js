@@ -10,6 +10,12 @@ const mysqlConfig = {
   host: process.env.DB_HOST || "127.0.0.1",
   port: Number(process.env.DB_PORT || 3306),
   dialect: "mysql",
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false
+    }
+  },
   migrationStorageTableName: "sequelize_meta",
   seederStorage: "sequelize",
   seederStorageTableName: "sequelize_data"
