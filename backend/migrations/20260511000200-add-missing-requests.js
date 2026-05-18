@@ -4,13 +4,13 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("missing_requests", {
       id: {
-        type: Sequelize.UUID,
+        type: "CHAR(36)",
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
         allowNull: false
       },
       user_id: {
-        type: Sequelize.UUID,
+        type: "CHAR(36)",
         allowNull: true,
         references: { model: "users", key: "id" },
         onDelete: "SET NULL",
