@@ -2151,7 +2151,7 @@ function _renderUserRows(usuariosList) {
       <td><span class="badge" style="background: ${u.rol === 'admin' ? 'var(--danger)' : 'var(--primary)'}; color: #000; font-weight: bold;">${u.rol.toUpperCase()}</span></td>
       <td>${u.fechaCreacion}</td>
       <td>
-        <button class="btn-small ${u.activo ? 'btn-success' : 'btn-danger'}" onclick="toggleUserStatus('${u.id}'); renderUserManagement();" title="Alternar Estado" style="min-width:90px">
+        <button class="btn-small ${u.activo ? 'btn-success' : 'btn-danger'}" onclick="toggleUserStatus('${u.id}')" title="Alternar Estado" style="min-width:90px">
           ${u.activo ? '✅ Activo' : '🚫 Inactivo'}
         </button>
       </td>
@@ -2249,7 +2249,7 @@ function mostrarFormularioUsuario(userId = null) {
           ${(window.PERMISOS ? window.PERMISOS.admin : ["home","pos","history","missing","clientes","products","categorias","compras","proveedores","reports","users"]).map(permiso => {
             let tienePermiso = user && user.permisos ? user.permisos.includes(permiso) : (user ? (window.PERMISOS && window.PERMISOS[user.rol] ? window.PERMISOS[user.rol].includes(permiso) : false) : false);
             if (!user) tienePermiso = (window.PERMISOS && window.PERMISOS["cajero"] ? window.PERMISOS["cajero"].includes(permiso) : false);
-            const nombresPermisos = { home:'Inicio', pos:'TPV', history:'Historial', missing:'Faltantes', clientes:'Clientes', products:'Productos', categorias:'Categorías', compras:'Compras', proveedores:'Proveedores', reports:'Reportes', users:'Usuarios' };
+            const nombresPermisos = { home:'Inicio', pos:'TPV', history:'Historial', missing:'Faltantes', clientes:'Clientes', products:'Productos', categorias:'Categorías', compras:'Compras', proveedores:'Proveedores', descuentos:'Descuentos', reports:'Reportes', users:'Usuarios' };
             return `<label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.9rem; cursor: pointer;">
               <input type="checkbox" class="permiso-checkbox" value="${permiso}" ${tienePermiso ? 'checked' : ''}>
               ${nombresPermisos[permiso] || permiso}
@@ -2366,21 +2366,31 @@ function filtrarUsuarios(tipo, btn = null) {
   tbody.innerHTML = _renderUserRows(filtrados);
 }
 
-function toggleUserStatus(userId) {
-  if (userId === "USER-ADMIN-001" || userId === state.usuarioActual.id) {
-    showToast("No puedes desactivarte a ti mismo u a la cuenta maestra.", "error");
+async function toggleUserStatus(userId) {
+  if (userId === "USER-ADMIN-001" || userId === state.usuarioActual?.id) {
+    showToast("No puedes desactivarte a ti mismo ni a la cuenta maestra.", "error");
     return;
   }
   const u = state.usuarios.find(x => x.id === userId);
-  if (u) {
-    u.activo = !u.activo;
-    if (typeof saveSheetData === 'function') {
-      saveSheetData("usuarios", u);
-    } else {
-      saveToLocalStorage("usuarios", state.usuarios);
+  if (!u) return;
+
+  const nuevoEstado = !u.activo;
+  u.activo = nuevoEstado;
+
+  if (typeof saveSheetData === "function") {
+    const saved = await saveSheetData("usuarios", u);
+    if (!saved) {
+      u.activo = !nuevoEstado; // revertir si falló
+      showToast("Error actualizando estado del usuario", "error");
+      renderUserManagement();
+      return;
     }
-    renderUserManagement();
+  } else {
+    saveToLocalStorage("usuarios", state.usuarios);
   }
+
+  showToast(nuevoEstado ? "Usuario activado" : "Usuario desactivado", nuevoEstado ? "success" : "warning");
+  renderUserManagement();
 }
 
 async function mostrarModalCambioPassword(userId) {

@@ -51,6 +51,14 @@ async function apiRequest(path, options = {}) {
   }
 
   const result = await response.json().catch(() => ({}));
+
+  // Si el servidor invalida la sesión (usuario desactivado o token expirado), cerrar sesión automáticamente
+  if (response.status === 401 && !options.skipAuth && !path.includes("/auth/login") && localStorage.getItem("modoLocal") !== "true") {
+    clearAuthSession();
+    location.reload();
+    return;
+  }
+
   if (!response.ok || result.success === false) {
     const error = new Error(getFriendlyApiMessage(response.status, result.message));
     error.status = response.status;
@@ -275,7 +283,22 @@ async function loadAllDataFromAPI(silent = false) {
     state.compras = compras;
     state.faltantes = faltantes;
     state.descuentos = descuentos;
-    if (usuarios.length) state.usuarios = usuarios.filter(u => u.rol !== "encargado");
+    if (usuarios.length) {
+      state.usuarios = usuarios.filter(u => u.rol !== "encargado");
+      // Si el admin cambió los permisos o el estado del usuario actual, sincronizar sin requerir re-login
+      if (state.usuarioActual) {
+        const miUsuario = state.usuarios.find(u => u.id === state.usuarioActual.id);
+        if (miUsuario) {
+          const permisosChanged = JSON.stringify(miUsuario.permisos) !== JSON.stringify(state.usuarioActual.permisos);
+          const activoChanged = miUsuario.activo !== state.usuarioActual.activo;
+          if (permisosChanged || activoChanged) {
+            state.usuarioActual = { ...state.usuarioActual, permisos: miUsuario.permisos, activo: miUsuario.activo };
+            localStorage.setItem("usuarioActual", JSON.stringify(state.usuarioActual));
+            if (typeof aplicarPermisosPorRol === "function") aplicarPermisosPorRol();
+          }
+        }
+      }
+    }
 
     if (!silent) {
       console.log(`Carga completa: ${state.productos.length} productos, ${state.ventas.length} ventas, ${state.categorias.length} categorías, ${faltantes.length} faltantes, ${descuentos.length} descuentos`);
@@ -287,7 +310,7 @@ async function loadAllDataFromAPI(silent = false) {
   }
 }
 
-async function sincronizarDesdeSheets() {
+async function sincronizarDatos() {
   try {
     showToast("Sincronizando con la base de datos...", "info");
     const ok = await loadAllDataFromAPI();
