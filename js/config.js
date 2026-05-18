@@ -1,19 +1,28 @@
-// ⚙️ CONFIGURACIÓN CENTRALIZADA - Papel & Luna
+// CONFIGURACIÓN CENTRALIZADA - Papel & Luna
 
 const CONFIG = {
-  // 🔌 PUERTO DEL SERVIDOR
-
+  // Puerto del servidor (solo para desarrollo local)
   PORT: 8000,
 
-  // 📍 URL BASE DE LA APLICACIÓN
+  // URL del backend en producción.
+  // Si el frontend y backend están en el mismo servidor (Railway), dejar null.
+  // Si están separados (Netlify + Railway), poner la URL de Railway aquí:
+  //   _productionApiUrl: "https://tu-backend.up.railway.app/api"
+  _productionApiUrl: null,
+
+  // API ENDPOINT — detecta automáticamente local vs producción
+  get API_URL() {
+    if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+      return `http://localhost:${this.PORT}/api`;
+    }
+    // En producción: si hay URL explícita, usarla; si no, usar mismo origen (Railway all-in-one)
+    return this._productionApiUrl || `${location.origin}/api`;
+  },
+
   get BASE_URL() {
     return `http://localhost:${this.PORT}`;
   },
 
-  // 🌐 API ENDPOINT (Google Sheets)
-  API_URL: "https://script.google.com/macros/s/AKfycbxang0QOYogbAKi70PYsVt6uRaqn9ih0P_pNz2N0RPRIyVJetLmeDoBe4-wwTzYZN6N6g/exec",
-
-  // 🎨 TEMAS Y ESTILOS
   THEME: {
     COLOR_PRIMARY: "#667eea",
     COLOR_SECONDARY: "#764ba2",
@@ -22,11 +31,5 @@ const CONFIG = {
     COLOR_WARNING: "#f59e0b",
   },
 
-  // 📝 CONFIGURACIÓN DE LOGS
-  DEBUG_MODE: false, // Cambiar a true para ver más logs en consola
+  DEBUG_MODE: false,
 };
-
-// Ejemplo de uso:
-// CONFIG.PORT -> 8000
-// CONFIG.BASE_URL -> http://localhost:8000
-// CONFIG.API_URL -> URL de Google Sheets

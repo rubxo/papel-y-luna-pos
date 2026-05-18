@@ -98,19 +98,34 @@ function mostrarPantallaLogin() {
               letter-spacing: 0.08em;
               color: #8892AA;
             ">Contraseña</label>
-            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" style="
-              width: 100%;
-              padding: 0.85rem 1rem;
-              border: 1px solid rgba(255,255,255,0.1);
-              border-radius: 10px;
-              font-size: 0.95rem;
-              box-sizing: border-box;
-              background: rgba(255,255,255,0.05);
-              color: #F0F4FF;
-              font-family: 'Outfit', sans-serif;
-              transition: all 0.25s ease;
-              outline: none;
-            " required>
+            <div style="position: relative; display: flex; align-items: center;">
+              <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" style="
+                width: 100%;
+                padding: 0.85rem 1rem;
+                padding-right: 2.5rem;
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 10px;
+                font-size: 0.95rem;
+                box-sizing: border-box;
+                background: rgba(255,255,255,0.05);
+                color: #F0F4FF;
+                font-family: 'Outfit', sans-serif;
+                transition: all 0.25s ease;
+                outline: none;
+              " required>
+              <button type="button" class="toggle-password-login" id="toggle-password-login" style="
+                position: absolute;
+                right: 10px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                font-size: 18px;
+                padding: 0;
+                color: #8892AA;
+                opacity: 0.6;
+                transition: opacity 0.2s;
+              ">👁️</button>
+            </div>
           </div>
 
           <button type="submit" id="login-btn" style="
@@ -215,20 +230,49 @@ function mostrarPantallaLogin() {
     }
   });
 
+  // Toggle password visibility
+  const togglePasswordBtn = document.getElementById("toggle-password-login");
+  const passwordInput = document.getElementById("login-password");
+  let isPasswordVisible = false;
+  
+  if (togglePasswordBtn) {
+    togglePasswordBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      isPasswordVisible = !isPasswordVisible;
+      passwordInput.type = isPasswordVisible ? "text" : "password";
+      togglePasswordBtn.textContent = isPasswordVisible ? "🙈" : "👁️";
+      togglePasswordBtn.style.opacity = isPasswordVisible ? "1" : "0.6";
+    });
+  }
+
   // Submit del formulario
-  document.getElementById("login-form").addEventListener("submit", (e) => {
+  document.getElementById("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const usuario = document.getElementById("login-usuario").value;
     const password = document.getElementById("login-password").value;
-    const user = state.usuarios.find(u => u.usuario === usuario && u.contraseña === password);
-    if (user) {
-      state.usuarioActual = user;
-      state.rolActual = user.rol;
-      state.logueado = true;
-      localStorage.setItem("usuarioActual", JSON.stringify(user));
-      location.reload();
-    } else {
-      mostrarError("Usuario o contraseña incorrectos");
+    const submitBtn = document.getElementById("login-btn");
+    
+    if (submitBtn) {
+      submitBtn.dataset.originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = "Cargando...";
+      submitBtn.disabled = true;
+    }
+
+    try {
+      const user = await loginToAPI(usuario, password);
+      if (user) {
+        state.usuarioActual = user;
+        state.rolActual = user.rol;
+        state.logueado = true;
+        location.reload();
+      }
+    } catch (error) {
+      mostrarError(error.message || "Usuario o contraseña incorrectos");
+    } finally {
+      if (submitBtn) {
+        submitBtn.innerHTML = submitBtn.dataset.originalText || "Iniciar Sesión →";
+        submitBtn.disabled = false;
+      }
     }
   });
 }
@@ -264,7 +308,7 @@ function mostrarError(mensaje) {
 function navigateTo(viewName) {
   const rol = state.rolActual || "cajero";
   let permitidos = window.PERMISOS ? (window.PERMISOS[rol] || window.PERMISOS.cajero) : [];
-  if (state.usuarioActual && state.usuarioActual.permisos && Array.isArray(state.usuarioActual.permisos)) {
+  if (state.usuarioActual && state.usuarioActual.permisos && Array.isArray(state.usuarioActual.permisos) && state.usuarioActual.permisos.length > 0) {
     permitidos = state.usuarioActual.permisos;
   }
   if (!permitidos.includes(viewName) && viewName !== "login") {
@@ -293,6 +337,7 @@ function navigateTo(viewName) {
     case "proveedores": renderProveedoresList(); break;
     case "reports":     renderReports(); break;
     case "users":       renderUserManagement(); break;
+    case "descuentos":  renderDescuentosList(); break;
     default: console.warn("Vista no reconocida:", viewName); return;
   }
   
@@ -301,10 +346,11 @@ function navigateTo(viewName) {
 
 function renderHome() {
   const view = document.getElementById("view-home");
-  const totalProductos = state.productos.length;
-  const totalVentas = state.ventas.length;
+  const totalProductos = state.productos.filter(p => p.activo !== false).length;
+  const ventasActivas = state.ventas.filter(v => v.estado !== "anulada");
+  const totalVentas = ventasActivas.length;
   const totalClientes = state.clientes ? state.clientes.length : 0;
-  const totalIngresos = state.ventas.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
+  const totalIngresos = ventasActivas.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
   const esAdmin = state.rolActual === "admin";
 
   const quickCardsAdmin = `
@@ -366,19 +412,59 @@ function renderHome() {
 
       <h2 style="margin: 2rem 0 1rem; font-size: 1.1rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Acceso rápido</h2>
       <div class="quick-access-grid">
+        ${hasPermission('pos') ? `
         <div class="quick-card" onclick="navigateTo('pos')">
           <span class="qc-icon">💳</span>
           <div class="qc-text"><strong>Punto de Venta</strong><span>Nueva venta</span></div>
-        </div>
+        </div>` : ''}
+        
+        ${hasPermission('history') ? `
         <div class="quick-card" onclick="navigateTo('history')">
           <span class="qc-icon">🕑</span>
           <div class="qc-text"><strong>Historial</strong><span>Ver ventas anteriores</span></div>
-        </div>
+        </div>` : ''}
+        
+        ${hasPermission('clientes') ? `
         <div class="quick-card" onclick="navigateTo('clientes')">
           <span class="qc-icon">👥</span>
           <div class="qc-text"><strong>Clientes</strong><span>Base de clientes</span></div>
-        </div>
-        ${esAdmin ? quickCardsAdmin : quickCardsCajero}
+        </div>` : ''}
+        
+        ${hasPermission('products') ? `
+        <div class="quick-card" onclick="navigateTo('products')">
+          <span class="qc-icon">📦</span>
+          <div class="qc-text"><strong>Productos</strong><span>Gestionar inventario</span></div>
+        </div>` : ''}
+        
+        ${hasPermission('categorias') ? `
+        <div class="quick-card" onclick="navigateTo('categorias')">
+          <span class="qc-icon">🏷️</span>
+          <div class="qc-text"><strong>Categorías</strong><span>Agrupar productos</span></div>
+        </div>` : ''}
+        
+        ${hasPermission('compras') ? `
+        <div class="quick-card" onclick="navigateTo('compras')">
+          <span class="qc-icon">🛒</span>
+          <div class="qc-text"><strong>Compras</strong><span>Registrar compras</span></div>
+        </div>` : ''}
+        
+        ${hasPermission('reports') ? `
+        <div class="quick-card" onclick="navigateTo('reports')">
+          <span class="qc-icon">📊</span>
+          <div class="qc-text"><strong>Reportes</strong><span>Ver estadísticas</span></div>
+        </div>` : ''}
+        
+        ${hasPermission('users') ? `
+        <div class="quick-card" onclick="navigateTo('users')">
+          <span class="qc-icon">👤</span>
+          <div class="qc-text"><strong>Usuarios</strong><span>Gestionar accesos</span></div>
+        </div>` : ''}
+
+        ${hasPermission('missing') ? `
+        <div class="quick-card" onclick="navigateTo('missing')">
+          <span class="qc-icon">⚠️</span>
+          <div class="qc-text"><strong>Faltantes</strong><span>Reportar productos</span></div>
+        </div>` : ''}
       </div>
     </div>`;
 }
@@ -580,6 +666,8 @@ async function mostrarModalPago() {
       <select id="payment-method" class="form-input" onchange="actualizarCampoPago()">
         <option value="efectivo">Efectivo</option>
         <option value="nequi">Nequi</option>
+        <option value="tarjeta">Tarjeta</option>
+        <option value="transferencia">Transferencia</option>
         <option value="debe">Debe (cuenta por cobrar)</option>
       </select>
 
@@ -630,12 +718,16 @@ async function procesarPago() {
   if (method === "efectivo") {
     amount = parseFloat(document.getElementById("payment-amount").value) || 0;
     if (amount < state.ventaActual.total) { showToast("El valor recibido es insuficiente", "error"); return; }
-  } else if (method === "nequi") {
-    amount = state.ventaActual.total; // Nequi = valor exacto
+  } else if (method === "nequi" || method === "tarjeta" || method === "transferencia") {
+    amount = state.ventaActual.total;
   } else if (method === "debe") {
-    amount = state.ventaActual.total; // Debe = se cierra sin cobro inmediato
+    amount = state.ventaActual.total;
     const clienteId = document.getElementById("payment-cliente").value;
-    if (clienteId) state.ventaActual.clienteId = clienteId;
+    if (!clienteId) {
+      showToast("El método 'Debe' requiere seleccionar un cliente", "error");
+      return;
+    }
+    state.ventaActual.clienteId = clienteId;
   }
 
   const ventaParaMostrar = {
@@ -750,10 +842,20 @@ function renderProductList() {
 function mostrarFormularioProducto(productId = null) {
   const product = productId ? state.productos.find(p => String(p.id) === String(productId)) : null;
   const modalContent = document.getElementById("modal-content");
-  modalContent.innerHTML = `<h3>${product ? "Editar Producto" : "Nuevo Producto"}</h3><form id="product-form" class="form"><input type="hidden" id="product-id" value="${product?.id || ""}"><label>Nombre:</label><input type="text" class="form-input" id="product-nombre" value="${product?.nombre || ""}" required><label>Descripcion:</label><textarea class="form-input" id="product-descripcion">${product?.descripcion || ""}</textarea><label>Precio:</label><input type="number" class="form-input" id="product-precio" value="${product?.precio || ""}" step="0.01" required><label>Costo:</label><input type="number" class="form-input" id="product-costo" value="${product?.costo || ""}" step="0.01" required><label>Stock:</label><input type="number" class="form-input" id="product-stock" value="${product?.stock || ""}" required><label>Categoria:</label><select class="form-input" id="product-categoria"><option value="">Seleccionar</option>${state.categorias.map(c => `<option value="${c.nombre}" ${product?.categoria === c.nombre ? "selected" : ""}>${c.nombre}</option>`).join("")}</select><button type="submit" class="btn btn-success">Guardar</button><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button></form>`;
+  modalContent.innerHTML = `<h3>${product ? "Editar Producto" : "Nuevo Producto"}</h3><form id="product-form" class="form"><input type="hidden" id="product-id" value="${product?.id || ""}"><label>Nombre:</label><input type="text" class="form-input" id="product-nombre" value="${product?.nombre || ""}" required><label>Descripcion:</label><textarea class="form-input" id="product-descripcion">${product?.descripcion || ""}</textarea><label>Precio de Venta:</label><input type="number" class="form-input" id="product-precio" value="${product?.precio || ""}" step="0.01" min="0" required><label>Costo:</label><input type="number" class="form-input" id="product-costo" value="${product?.costo || ""}" step="0.01" min="0" required><label>Stock:</label><input type="number" class="form-input" id="product-stock" value="${product?.stock ?? ""}" min="0" required><label>Categoria:</label><select class="form-input" id="product-categoria"><option value="">Sin categoría</option>${state.categorias.map(c => `<option value="${c.id}" ${product?.categoriaId === c.id ? "selected" : ""}>${c.nombre}</option>`).join("")}</select><button type="submit" class="btn btn-success">Guardar</button><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button></form>`;
   document.getElementById("product-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const data = { nombre: document.getElementById("product-nombre").value, descripcion: document.getElementById("product-descripcion").value, precio: document.getElementById("product-precio").value, costo: document.getElementById("product-costo").value, stock: document.getElementById("product-stock").value, categoria: document.getElementById("product-categoria").value };
+    const catId = document.getElementById("product-categoria").value;
+    const catObj = state.categorias.find(c => c.id === catId);
+    const data = {
+      nombre: document.getElementById("product-nombre").value,
+      descripcion: document.getElementById("product-descripcion").value,
+      precio: document.getElementById("product-precio").value,
+      costo: document.getElementById("product-costo").value,
+      stock: document.getElementById("product-stock").value,
+      categoriaId: catId || null,
+      categoria: catObj ? catObj.nombre : "Sin categoría"
+    };
     if (productId) await updateProduct(productId, data);
     else await createProduct(data);
     closeModal();
@@ -797,17 +899,16 @@ function mostrarFormularioCategoria(categoriaId = null) {
         cat.nombre = nombre;
         cat.descripcion = descripcion;
         categoryData = cat;
+        const saved = await saveSheetData("categorias", categoryData).catch(e => { console.warn(e); return null; });
+        if (saved && saved !== true && saved !== false) Object.assign(cat, saved);
       }
     } else {
-      categoryData = { id: `CAT-${Date.now()}`, nombre, descripcion };
-      state.categorias.push(categoryData);
+      categoryData = { nombre, descripcion };
+      const saved = await saveSheetData("categorias", categoryData).catch(e => { console.warn(e); return null; });
+      const finalCategory = (saved && saved !== true && saved !== false) ? saved : { id: `CAT-${Date.now()}`, nombre, descripcion };
+      state.categorias.push(finalCategory);
     }
-    
-    // Sync con API
-    if (categoryData) {
-      postToAPI("categorias", categoryData).catch(e => console.warn(e));
-    }
-    
+
     showToast("Categoría guardada", "success");
     closeModal();
     renderCategoriasList();
@@ -838,10 +939,17 @@ function contarItemsVenta(v) {
 }
 
 function renderFilasHistorial(ventas) {
-  if (ventas.length === 0) {
+  // Ocultar ventas corregidas o anuladas por defecto para evitar confusión de duplicados
+  const estadoFiltro = document.getElementById("filter-estado")?.value;
+  const ventasFiltradas = (estadoFiltro === "" || !estadoFiltro) 
+    ? ventas.filter(v => v.estado !== 'corregida' && v.estado !== 'anulada')
+    : ventas;
+
+  if (ventasFiltradas.length === 0) {
     return '<tr><td colspan="9" style="text-align: center; padding: 2rem;">No hay ventas registradas</td></tr>';
   }
-  return ventas.map(function(v) {
+
+  return ventasFiltradas.map(function(v) {
     var n = contarItemsVenta(v);
     return '<tr>'
       + '<td><span class="badge badge-info">' + v.id + '</span></td>'
@@ -869,6 +977,19 @@ function renderSalesHistory() {
       <h3 style="margin-top: 0;">🔍 Filtros Avanzados</h3>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div>
+          <label>Buscar:</label>
+          <input type="text" id="filter-buscar" class="form-input" placeholder="ID, Producto, Número..." oninput="aplicarFiltrosHistorial()">
+        </div>
+        <div>
+          <label>Estado:</label>
+          <select id="filter-estado" class="form-input" onchange="aplicarFiltrosHistorial()">
+            <option value="">Todos</option>
+            <option value="cerrada">Cerrada</option>
+            <option value="corregida">Corregida</option>
+            <option value="anulada">Anulada</option>
+          </select>
+        </div>
+        <div>
           <label>Método de Pago:</label>
           <select id="filter-method" class="form-input" onchange="aplicarFiltrosHistorial()">
             <option value="">Todos</option>
@@ -893,8 +1014,9 @@ function renderSalesHistory() {
           <label>Monto Máximo:</label>
           <input type="number" id="filter-maximo" class="form-input" step="0.01" placeholder="0.00" onchange="aplicarFiltrosHistorial()">
         </div>
-        <div style="display: flex; align-items: flex-end;">
-          <button class="btn btn-primary" style="width: 100%;" onclick="limpiarFiltrosHistorial()">Limpiar Filtros</button>
+        <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+          <button class="btn btn-primary" onclick="aplicarFiltrosHistorial()" style="flex:1;">🔍 Buscar</button>
+          <button class="btn btn-secondary" onclick="limpiarFiltrosHistorial()" style="flex:1;">Limpiar</button>
         </div>
       </div>
     </div>
@@ -932,6 +1054,7 @@ function mostrarFactura(id) {
   let html = `
     <div id="factura-print-area" style="padding: 1.5rem; background: #fff; color: #000; font-family: monospace;">
       <h2 style="text-align: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #000; padding-bottom: 0.5rem; color: #000;">Ticket de Venta</h2>
+      <p style="text-align: center; margin-bottom: 0.5rem; font-size: 0.95rem; color: #000;"><strong>PAPEL & LUNA</strong><br>NIT: 901.234.567-8</p>
       <p style="text-align: center; margin-bottom: 1.5rem; font-size: 0.95rem; color: #000;">ID: ${venta.id}<br>Fecha: ${venta.fecha}</p>
       
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.95rem; color: #000;">
@@ -958,10 +1081,17 @@ function mostrarFactura(id) {
         <p style="color: #000;"><strong>Impuesto:</strong> $${parseFloat(venta.impuesto).toFixed(2)}</p>
         <p style="font-size: 1.2em; margin-top: 0.5rem; color: #000;"><strong>Total:</strong> $${parseFloat(venta.total).toFixed(2)}</p>
       </div>
-      <div style="margin-top: 1rem; text-align: right; font-size: 0.9rem; color: #000;">
         <p style="color: #000;"><strong>Método:</strong> ${venta.metodoPago || '-'}</p>
         <p style="color: #000;"><strong>Cambio entregado:</strong> $${parseFloat(venta.cambio || 0).toFixed(2)}</p>
       </div>
+      ${venta.historialCorrecciones && venta.historialCorrecciones.length > 0 ? `
+      <div style="margin-top: 1rem; padding: 0.5rem; background: #fff1f2; border: 1px dashed #e11d48; font-size: 0.85rem; color: #e11d48; text-align: left;">
+        <strong>Historial de Correcciones:</strong>
+        <ul style="margin: 0.5rem 0 0 0; padding-left: 1.2rem;">
+          ${venta.historialCorrecciones.map(c => `<li>${c.fecha} - ${c.usuario}: ${c.motivo}</li>`).join('')}
+        </ul>
+      </div>
+      ` : ''}
       <p style="text-align: center; margin-top: 2rem; font-size: 0.85rem; padding-top: 1rem; border-top: 1px dashed #000; color: #000;">¡Gracias por su compra!</p>
     </div>
     
@@ -986,6 +1116,8 @@ function mostrarFactura(id) {
 
 function aplicarFiltrosHistorial() {
   const metodoPago = document.getElementById("filter-method").value;
+  const estado = document.getElementById("filter-estado").value;
+  const buscar = document.getElementById("filter-buscar").value;
   const desde = document.getElementById("filter-desde").value;
   const hasta = document.getElementById("filter-hasta").value;
   const minimo = parseFloat(document.getElementById("filter-minimo").value) || null;
@@ -993,6 +1125,8 @@ function aplicarFiltrosHistorial() {
   
   const criteria = {
     metodoPago: metodoPago || undefined,
+    estado: estado || undefined,
+    buscar: buscar || undefined,
     desde: desde || undefined,
     hasta: hasta || undefined,
     minimo: minimo,
@@ -1008,6 +1142,8 @@ function aplicarFiltrosHistorial() {
 }
 
 function limpiarFiltrosHistorial() {
+  document.getElementById("filter-buscar").value = "";
+  document.getElementById("filter-estado").value = "";
   document.getElementById("filter-method").value = "";
   document.getElementById("filter-desde").value = "";
   document.getElementById("filter-hasta").value = "";
@@ -1019,13 +1155,13 @@ function limpiarFiltrosHistorial() {
 function openModal() { document.querySelector(".modal-overlay").classList.add("active"); }
 function closeModal() { document.querySelector(".modal-overlay").classList.remove("active"); document.getElementById("modal-content").innerHTML = ""; }
 
-function customPrompt(message, defaultValue) {
+function customPrompt(message, defaultValue, inputType = 'number') {
   return new Promise(resolve => {
     const modalContent = document.getElementById("modal-content");
     modalContent.innerHTML = `
       <h2 style="margin-bottom: 1rem">${message}</h2>
       <div class="form-group" style="margin-bottom: 1.5rem">
-        <input type="number" id="prompt-input" value="${defaultValue}" class="form-input" style="font-size: 1.25rem; font-weight: bold; text-align: center" autofocus>
+        <input type="${inputType}" id="prompt-input" value="${defaultValue}" class="form-input" style="font-size: 1.25rem; font-weight: bold; text-align: center" autofocus>
       </div>
       <div style="display: flex; gap: 1rem; justify-content: flex-end;">
         <button class="btn btn-secondary" id="prompt-cancel">Cancelar</button>
@@ -1162,18 +1298,21 @@ function mostrarFormularioCliente(clienteId = null) {
   document.getElementById("cliente-form").addEventListener("submit", async e => {
     e.preventDefault();
     const data = {
-      id: cliente?.id || `CLI-${Date.now()}`,
+      id: cliente?.id,
       nombre: document.getElementById("cli-nombre").value.trim(),
       telefono: document.getElementById("cli-telefono").value.trim(),
       correo: document.getElementById("cli-correo").value.trim()
     };
-    if (cliente) {
-      const idx = state.clientes.findIndex(c => String(c.id) === String(clienteId));
-      if (idx > -1) state.clientes[idx] = data;
-    } else {
-      state.clientes.push(data);
-    }
-    try { await postToAPI("clientes", data); } catch(e) {}
+    try {
+      const saved = await saveSheetData("clientes", data);
+      const final = (saved && saved !== true && saved !== false) ? saved : data;
+      if (cliente) {
+        const idx = state.clientes.findIndex(c => String(c.id) === String(clienteId));
+        if (idx > -1) state.clientes[idx] = final;
+      } else {
+        state.clientes.push(final);
+      }
+    } catch(e) { console.warn(e); }
     showToast(cliente ? 'Cliente actualizado' : 'Cliente creado', 'success');
     closeModal();
     renderClientesList();
@@ -1265,18 +1404,21 @@ function mostrarFormularioProveedor(proveedorId = null) {
   document.getElementById("prov-form").addEventListener("submit", async e => {
     e.preventDefault();
     const data = {
-      id: proveedor?.id || `PROV-${Date.now()}`,
+      id: proveedor?.id,
       nombre: document.getElementById("prov-nombre").value.trim(),
       nit: document.getElementById("prov-nit").value.trim(),
       contacto: document.getElementById("prov-contacto").value.trim()
     };
-    if (proveedor) {
-      const idx = state.proveedores.findIndex(p => String(p.id) === String(proveedorId));
-      if (idx > -1) state.proveedores[idx] = data;
-    } else {
-      state.proveedores.push(data);
-    }
-    try { await postToAPI("proveedores", data); } catch(e) {}
+    try {
+      const saved = await saveSheetData("proveedores", data);
+      const final = (saved && saved !== true && saved !== false) ? saved : data;
+      if (proveedor) {
+        const idx = state.proveedores.findIndex(p => String(p.id) === String(proveedorId));
+        if (idx > -1) state.proveedores[idx] = final;
+      } else {
+        state.proveedores.push(final);
+      }
+    } catch(e) { console.warn(e); }
     showToast(proveedor ? 'Proveedor actualizado' : 'Proveedor creado', 'success');
     closeModal();
     renderProveedoresList();
@@ -1417,6 +1559,7 @@ function mostrarFormularioCompra() {
             <option value="">Producto...</option>
             ${opcionesProductos}
           </select>
+          <button type="button" class="btn btn-small btn-info" onclick="crearProductoRapidoCompras()">+ Nuevo</button>
           <input type="number" id="compra-cant" placeholder="Cant." min="1" value="1"
             style="flex:1; min-width:60px; padding:0.6rem; border:1px solid var(--glass-border); border-radius:8px; background:var(--bg-input); color:var(--text-main); font-family:inherit;">
           <input type="number" id="compra-costo" placeholder="Costo" min="0" step="0.01"
@@ -1436,6 +1579,30 @@ function mostrarFormularioCompra() {
     </div>`;
 
   // Auto-fill costo del producto seleccionado
+  window.crearProductoRapidoCompras = async function() {
+    const nombre = await customPrompt("Nombre del nuevo producto:", "", "text");
+    if (!nombre) return;
+    const costo = await customPrompt("Costo unitario:", "0", "number");
+    const precio = await customPrompt("Precio de venta sugerido:", "0", "number");
+    
+    const nuevoProd = {
+      id: `PROD-${Date.now()}`,
+      nombre,
+      costo: parseFloat(costo) || 0,
+      precio: parseFloat(precio) || 0,
+      stock: 0,
+      categoria: "General",
+      activo: true
+    };
+    
+    state.productos.push(nuevoProd);
+    if (typeof saveSheetData === 'function') await saveSheetData("productos", nuevoProd);
+    else saveToLocalStorage("productos", state.productos);
+    
+    showToast("Producto creado y añadido a la lista", "success");
+    mostrarFormularioCompra(); // Refresh to show in select
+  };
+
   document.getElementById("compra-prod-select").addEventListener("change", function() {
     const opt = this.options[this.selectedIndex];
     const costo = opt.dataset.costo;
@@ -1486,19 +1653,42 @@ function mostrarFormularioCompra() {
       itemsJson: JSON.stringify(window._compraItems),
       total
     };
-    state.compras.push(compra);
-    // Actualizar stock de productos con seguimiento
-    window._compraItems.forEach(item => {
-      const prod = state.productos.find(p => p.id === item.id);
-      if (prod && prod.seguimientoInventario) {
-        prod.stock = (parseInt(prod.stock) || 0) + item.cantidad;
-      }
-    });
-    try { await postToAPI("compras", compra); } catch(e) {}
-    showToast("✅ Compra registrada exitosamente", "success");
-    window._compraItems = [];
-    closeModal();
-    renderCompras();
+
+    if (localStorage.getItem("modoLocal") === "true") {
+      // En modo local, actualizar stock manualmente
+      state.compras.push(compra);
+      window._compraItems.forEach(item => {
+        const prod = state.productos.find(p => p.id === item.id);
+        if (prod && prod.seguimientoInventario) prod.stock = (parseInt(prod.stock) || 0) + item.cantidad;
+      });
+      saveToLocalStorage("compras", state.compras);
+      saveToLocalStorage("productos", state.productos);
+      showToast("Compra registrada (modo local)", "success");
+      window._compraItems = [];
+      closeModal();
+      renderCompras();
+      return;
+    }
+
+    try {
+      const payload = {
+        supplierId: proveedorId || null,
+        paymentMethod: metodoPago || "efectivo",
+        items: window._compraItems.map(item => ({
+          productId: item.id,
+          quantity: Number(item.cantidad),
+          unitCost: Number(item.costo)
+        })).filter(i => i.productId && i.quantity > 0)
+      };
+      await apiRequest("/purchases", { method: "POST", body: JSON.stringify(payload) });
+      await loadAllDataFromAPI(true);
+      showToast("Compra registrada exitosamente", "success");
+      window._compraItems = [];
+      closeModal();
+      renderCompras();
+    } catch (error) {
+      showToast(error.message || "Error registrando compra", "error");
+    }
   };
 
   openModal();
@@ -1555,16 +1745,43 @@ function renderMissingItems() {
     </div>`;
 
   document.querySelectorAll('.falt-resolve').forEach(btn =>
-    btn.addEventListener('click', () => {
-      const f = state.faltantes.find(x => x.id === btn.dataset.id);
-      if (f) { f.estado = 'resuelto'; showToast('Faltante marcado como resuelto', 'success'); renderMissingItems(); }
+    btn.addEventListener('click', async () => {
+      const fId = btn.dataset.id;
+      if (localStorage.getItem("modoLocal") === "true") {
+        const f = state.faltantes.find(x => x.id === fId);
+        if (f) { f.estado = 'resuelto'; renderMissingItems(); }
+        return;
+      }
+      try {
+        await apiRequest(`/missing-requests/${fId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: "resuelto" })
+        });
+        const f = state.faltantes.find(x => x.id === fId);
+        if (f) f.estado = 'resuelto';
+        showToast('Faltante marcado como resuelto', 'success');
+        renderMissingItems();
+      } catch (error) {
+        showToast(error.message || 'Error al actualizar faltante', 'error');
+      }
     }));
   document.querySelectorAll('.falt-delete').forEach(btn =>
     btn.addEventListener('click', async () => {
-      if (await customConfirm('¿Eliminar este faltante?')) {
-        state.faltantes = state.faltantes.filter(f => f.id !== btn.dataset.id);
+      if (!await customConfirm('¿Eliminar este faltante?')) return;
+      const fId = btn.dataset.id;
+      if (localStorage.getItem("modoLocal") === "true") {
+        state.faltantes = state.faltantes.filter(f => f.id !== fId);
         showToast('Faltante eliminado', 'success');
         renderMissingItems();
+        return;
+      }
+      try {
+        await apiRequest(`/missing-requests/${fId}`, { method: "DELETE" });
+        state.faltantes = state.faltantes.filter(f => f.id !== fId);
+        showToast('Faltante eliminado', 'success');
+        renderMissingItems();
+      } catch (error) {
+        showToast(error.message || 'Error al eliminar faltante', 'error');
       }
     }));
 }
@@ -1600,7 +1817,7 @@ function mostrarFormularioFaltante() {
     </form>`;
   openModal();
 
-  document.getElementById("faltante-form").addEventListener("submit", e => {
+  document.getElementById("faltante-form").addEventListener("submit", async e => {
     e.preventDefault();
     const faltante = {
       id: generateMissingItemId(),
@@ -1611,10 +1828,11 @@ function mostrarFormularioFaltante() {
       fecha: new Date().toLocaleString("es-CO"),
       estado: "pendiente"
     };
-    state.faltantes.push(faltante);
-    showToast("Faltante registrado", "success");
-    closeModal();
-    renderMissingItems();
+    const ok = await saveMissingItem(faltante);
+    if (ok) {
+      closeModal();
+      renderMissingItems();
+    }
   });
 }
 
@@ -1773,25 +1991,113 @@ function mostrarDetallesReporte(reporteStr) {
     let html = `<h3>${reporte.tipo}</h3>`;
     
     if (reporte.periodo) html += `<p><strong>Período:</strong> ${reporte.periodo}</p>`;
-    html += `<p><strong>Fecha Generación:</strong> ${reporte.fecha}</p>`;
+    html += `<p><strong>Fecha de Generación:</strong> ${reporte.fecha}</p>`;
     
-    // Mostrar campos dinámicos
+    const dicc = {
+      totalVentas: "Total de Ventas",
+      totalDescuentos: "Total de Descuentos",
+      totalImpuestos: "Total de Impuestos (IVA)",
+      totalArticulos: "Total de Artículos Vendidos",
+      cantidadTransacciones: "Cantidad de Transacciones",
+      ticketPromedio: "Ticket Promedio",
+      totalProductos: "Total de Productos",
+      productosAgotados: "Productos Agotados",
+      productosConBajoStock: "Productos con Bajo Stock",
+      valorTotalInventario: "Valor Total del Inventario",
+      costoTotalInventario: "Costo Total del Inventario",
+      gananciaPotencial: "Ganancia Potencial",
+      totalClientes: "Total de Clientes",
+      clientesActivos: "Clientes Activos",
+      totalClientesInactivos: "Clientes Inactivos",
+      totalCompras: "Total de Compras"
+    };
+
+    html += `<div style="margin-top: 1rem; border: 1px solid var(--border); padding: 1rem; border-radius: var(--radius); background: var(--bg-panel);">`;
+
     Object.keys(reporte).forEach(key => {
       if (!['tipo', 'periodo', 'fecha'].includes(key)) {
         const valor = reporte[key];
-        if (typeof valor === 'object') {
-          html += `<p><strong>${key}:</strong></p><pre style="background: var(--bg-body); padding: 1rem; border-radius: 0.5rem; overflow-x: auto;">${JSON.stringify(valor, null, 2)}</pre>`;
+        const label = dicc[key] || key;
+        
+        if (Array.isArray(valor)) {
+          html += `<h4 style="margin-top:1rem;">${label}:</h4>`;
+          if (valor.length === 0) {
+            html += `<p style="color:var(--text-muted);">No hay registros.</p>`;
+          } else {
+            html += `<ul style="padding-left:1.5rem;">`;
+            valor.forEach(v => {
+              if (v.nombre && v.stock !== undefined) {
+                html += `<li><strong>${v.nombre}</strong> - Stock: <span style="color:var(--danger);">${v.stock}</span></li>`;
+              } else {
+                html += `<li>${JSON.stringify(v)}</li>`;
+              }
+            });
+            html += `</ul>`;
+          }
         } else {
-          html += `<p><strong>${key}:</strong> ${valor}</p>`;
+          const isMoney = ['totalVentas', 'totalDescuentos', 'totalImpuestos', 'ticketPromedio', 'valorTotalInventario', 'costoTotalInventario', 'gananciaPotencial', 'totalCompras'].includes(key);
+          const displayVal = isMoney ? `$${parseFloat(valor).toFixed(2)}` : valor;
+          html += `<div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; border-bottom:1px solid var(--border); padding-bottom:0.25rem;">
+                     <span><strong>${label}</strong></span>
+                     <span>${displayVal}</span>
+                   </div>`;
         }
       }
     });
     
-    html += `<button class="btn btn-primary" onclick="closeModal()">Cerrar</button>`;
+    html += `</div>`;
+    
+    // Gráfico interactivo si es reporte de ventas o inventario
+    if (['Reporte de Ventas', 'Reporte de Inventario'].includes(reporte.tipo)) {
+      html += `<div style="margin-top: 2rem; background: #fff; padding: 1rem; border-radius: 12px; height: 300px;">
+                 <canvas id="reportChart"></canvas>
+               </div>`;
+    }
+
+    html += `<div style="margin-top: 1.5rem; text-align: right;">
+               <button class="btn btn-secondary" onclick="window.print()" style="margin-right: 0.5rem;" class="no-print">🖨️ Imprimir</button>
+               <button class="btn btn-primary" onclick="closeModal()">Cerrar</button>
+             </div>`;
     
     modalContent.innerHTML = html;
     openModal();
+
+    // Inicializar gráfico
+    if (['Reporte de Ventas', 'Reporte de Inventario'].includes(reporte.tipo)) {
+      const ctx = document.getElementById('reportChart').getContext('2d');
+      const isVentas = reporte.tipo === 'Reporte de Ventas';
+      
+      new Chart(ctx, {
+        type: isVentas ? 'bar' : 'pie',
+        data: {
+          labels: isVentas ? ['Subtotal', 'IVA', 'Total'] : ['Ventas', 'Descuentos', 'Impuestos'],
+          datasets: [{
+            label: 'Valores ($)',
+            data: isVentas ? [reporte.totalVentas, reporte.totalImpuestos, reporte.totalVentas] : [reporte.totalVentas, reporte.totalDescuentos, reporte.totalImpuestos],
+            backgroundColor: [
+              'rgba(59, 130, 246, 0.6)',
+              'rgba(16, 185, 129, 0.6)',
+              'rgba(139, 92, 246, 0.6)'
+            ],
+            borderColor: [
+              '#3b82f6',
+              '#10b981',
+              '#8b5cf6'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
   } catch (e) {
+    console.error(e);
     showToast("Error mostrando reporte", "error");
   }
 }
@@ -1874,7 +2180,10 @@ function mostrarLoginModal() {
       <input type="text" class="form-input" id="login-user" placeholder="Nombre de usuario" required autofocus>
       
       <label>Contraseña:</label>
-      <input type="password" class="form-input" id="login-password" placeholder="Contraseña" required>
+      <div style="position: relative; display: flex; align-items: center;">
+        <input type="password" class="form-input" id="login-password" placeholder="Contraseña" required style="padding-right: 40px;">
+        <button type="button" class="toggle-password-btn" id="toggle-password" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 18px; padding: 0; color: var(--text); opacity: 0.6; transition: opacity 0.2s;">👁️</button>
+      </div>
       
       <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
       <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
@@ -1890,6 +2199,19 @@ function mostrarLoginModal() {
       closeModal();
       renderUserManagement();
     }
+  });
+
+  // Toggle visibility del password
+  const toggleBtn = document.getElementById("toggle-password");
+  const passwordInput = document.getElementById("login-password");
+  let isPasswordVisible = false;
+  
+  toggleBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    isPasswordVisible = !isPasswordVisible;
+    passwordInput.type = isPasswordVisible ? "text" : "password";
+    toggleBtn.textContent = isPasswordVisible ? "🙈" : "👁️";
+    toggleBtn.style.opacity = isPasswordVisible ? "1" : "0.6";
   });
   
   openModal();
@@ -1940,6 +2262,16 @@ function mostrarFormularioUsuario(userId = null) {
       </form>
     `;
     openModal();
+
+    // Actualizar checkboxes de permisos según el rol seleccionado (para nuevos usuarios)
+    document.getElementById("user-rol").addEventListener("change", function() {
+      if (user) return; // No cambiar automáticamente si estamos editando
+      const nuevoRol = this.value;
+      const permitidosDefault = window.PERMISOS ? (window.PERMISOS[nuevoRol] || []) : [];
+      document.querySelectorAll(".permiso-checkbox").forEach(cb => {
+        cb.checked = permitidosDefault.includes(cb.value);
+      });
+    });
   
     document.getElementById("user-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1959,32 +2291,61 @@ function mostrarFormularioUsuario(userId = null) {
           return;
         }
         
+        const roleMatch = state.usuarios.find(u => u.rol === rol);
+        const roleId = roleMatch ? roleMatch.roleId : null;
+
         const nuevoUser = {
-          id: 'USER-' + rol.toUpperCase() + '-' + Date.now(),
           nombre,
           usuario: usuarioLogin,
-          contraseña: p1,
+          fullName: nombre,
+          username: usuarioLogin,
+          password: p1,
+          roleId: roleId,
           rol,
           permisos: permisosSeleccionados,
-          activo: true,
-          fechaCreacion: new Date().toLocaleDateString()
+          activo: true
         };
-        state.usuarios.push(nuevoUser);
+        
+        if (typeof saveSheetData === 'function') {
+          const saved = await saveSheetData("usuarios", nuevoUser);
+          if (saved && saved !== true) state.usuarios.push(saved);
+        } else {
+          nuevoUser.id = 'USER-' + rol.toUpperCase() + '-' + Date.now();
+          state.usuarios.push(nuevoUser);
+          saveToLocalStorage("usuarios", state.usuarios);
+        }
       } else {
-        user.nombre = nombre;
-        user.usuario = usuarioLogin;
-        user.rol = rol;
-        user.permisos = permisosSeleccionados;
-      }
+        const roleMatch = state.usuarios.find(u => u.rol === rol);
+        const roleId = roleMatch ? roleMatch.roleId : user.roleId;
 
-      if (typeof saveSheetData === 'function') {
-        await saveSheetData("usuarios", state.usuarios);
-      } else {
-        saveToLocalStorage("usuarios", state.usuarios);
+        const updatedUser = {
+          ...user,
+          nombre,
+          usuario: usuarioLogin,
+          fullName: nombre,
+          username: usuarioLogin,
+          roleId: roleId,
+          rol,
+          permisos: permisosSeleccionados
+        };
+
+        if (typeof saveSheetData === 'function') {
+          const saved = await saveSheetData("usuarios", updatedUser);
+          if (saved && saved !== true) Object.assign(user, saved);
+        } else {
+          Object.assign(user, updatedUser);
+          saveToLocalStorage("usuarios", state.usuarios);
+        }
       }
 
     closeModal();
     showToast(user ? "Usuario actualizado" : "Usuario creado exitosamente", "success");
+    
+    // Si editamos nuestro propio perfil, refrescar permisos de la barra lateral
+    if (user && state.usuarioActual && user.id === state.usuarioActual.id) {
+      if (typeof aplicarPermisosPorRol === 'function') aplicarPermisosPorRol();
+    }
+    
     renderUserManagement();
   });
 }
@@ -2014,10 +2375,11 @@ function toggleUserStatus(userId) {
   if (u) {
     u.activo = !u.activo;
     if (typeof saveSheetData === 'function') {
-      saveSheetData("usuarios", state.usuarios);
+      saveSheetData("usuarios", u);
     } else {
       saveToLocalStorage("usuarios", state.usuarios);
     }
+    renderUserManagement();
   }
 }
 
@@ -2030,9 +2392,9 @@ async function mostrarModalCambioPassword(userId) {
     <h3>🔑 Cambiar contraseña de ${user.nombre}</h3>
     <form id="change-pass-form" class="form">
       <label>Nueva Contraseña:</label>
-      <input type="password" class="form-input" id="new-password" required minlength="4">
+      <input type="password" class="form-input" id="new-password" required minlength="6">
       <label>Confirmar Nueva Contraseña:</label>
-      <input type="password" class="form-input" id="new-password-confirm" required minlength="4">
+      <input type="password" class="form-input" id="new-password-confirm" required minlength="6">
       <button type="submit" class="btn btn-success">Guardar</button>
       <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
     </form>
@@ -2048,10 +2410,18 @@ async function mostrarModalCambioPassword(userId) {
       return;
     }
     
-    user.contraseña = p1;
-    if (typeof saveSheetData === 'function') {
-      await saveSheetData('usuarios', state.usuarios);
+    if (typeof apiRequest === 'function' && localStorage.getItem("modoLocal") !== "true") {
+      try {
+        await apiRequest(`/users/${userId}/password`, {
+          method: "PATCH",
+          body: JSON.stringify({ password: p1 })
+        });
+      } catch (e) {
+        showToast("Error al actualizar la contraseña en el servidor", "error");
+        return;
+      }
     } else {
+      user.contraseña = p1;
       saveToLocalStorage('usuarios', state.usuarios);
     }
     showToast("Contraseña actualizada con éxito", "success");
@@ -2068,8 +2438,8 @@ function deleteUsuario(userId) {
   customConfirm("¿Seguro que deseas eliminar este usuario de forma permanente?").then(async confirm => {
     if (confirm) {
       state.usuarios = state.usuarios.filter(u => u.id !== userId);
-      if (typeof saveSheetData === 'function') {
-        await saveSheetData('usuarios', state.usuarios);
+      if (typeof deleteSheetData === 'function') {
+        await deleteSheetData('usuarios', userId);
       } else {
         saveToLocalStorage('usuarios', state.usuarios);
       }
@@ -2080,46 +2450,318 @@ function deleteUsuario(userId) {
 }
 
 async function anularVenta(id) {
+  const motivo = await customPrompt('Motivo de anulación (requerido):', 'Error en venta', 'text');
+  if (!motivo || !motivo.trim()) return;
   if (await customConfirm('¿Seguro que deseas anular esta venta? Se devolverá el stock.')) {
-    const venta = state.ventas.find(v => v.id === id);
-    if (!venta) return;
-    venta.estado = 'anulada';
-    venta.items.forEach(item => {
-      const prod = state.productos.find(p => p.id === item.productoId);
-      if (prod && prod.seguimiento) prod.stock += item.cantidad;
-    });
-    if (typeof saveSheetData === 'function') {
-      await saveSheetData('ventas', state.ventas);
-      await saveSheetData('productos', state.productos);
-    } else {
+    if (localStorage.getItem("modoLocal") === "true") {
+      const venta = state.ventas.find(v => v.id === id);
+      if (!venta) return;
+      venta.estado = 'anulada';
+      for (const item of (venta.items || [])) {
+        const prod = state.productos.find(p => p.id === (item.productoId || item.id));
+        if (prod && prod.seguimientoInventario) prod.stock += item.cantidad;
+      }
       saveToLocalStorage('ventas', state.ventas);
       saveToLocalStorage('productos', state.productos);
+      showToast('Venta anulada (modo local)', 'success');
+      mostrarFactura(id);
+      renderSalesHistory();
+      return;
     }
-    showToast('Venta anulada correctamente', 'success');
-    closeModal();
-    renderSalesHistory();
+    try {
+      await apiRequest(`/sales/${id}/cancel`, {
+        method: "POST",
+        body: JSON.stringify({ reason: motivo.trim() })
+      });
+      await loadAllDataFromAPI(true);
+      showToast('Venta anulada correctamente', 'success');
+      closeModal();
+      renderSalesHistory();
+    } catch (error) {
+      showToast(error.message || 'Error al anular la venta', 'error');
+    }
   }
 }
-function corregirVenta(id) { showToast('Corrección avanzada disponible en breve', 'info'); }
-function reembolsarVenta(id) { showToast('Reembolso completo registrado', 'success'); }
+
+async function corregirVenta(id) {
+  const venta = state.ventas.find(v => v.id === id);
+  if (!venta) return;
+  mostrarModalCorreccion(venta);
+}
+
+function mostrarModalCorreccion(venta) {
+  const modal = document.getElementById("modal-content");
+  const productosDisponibles = (state.productos || []).filter(p => p.activo !== false);
+  const clientesDisponibles = (state.clientes || []).filter(c => c.activo !== false);
+
+  const corrItems = JSON.parse(JSON.stringify(venta.items || []));
+
+  function renderCorrItems() {
+    return corrItems.map((item, idx) => `
+      <tr>
+        <td>${item.nombre}</td>
+        <td style="text-align:center;">
+          <input type="number" class="form-input corr-qty" data-idx="${idx}"
+            value="${item.cantidad}" min="1"
+            style="width:70px; text-align:center; padding:0.3rem;">
+        </td>
+        <td style="text-align:center;">
+          <button class="btn btn-small btn-danger corr-remove" data-idx="${idx}">✕</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  function renderAddProduct() {
+    return `<select id="corr-add-select" class="form-input" style="flex:1;">
+      <option value="">— Agregar producto —</option>
+      ${productosDisponibles.map(p => `<option value="${p.id}">${p.nombre} (stock: ${p.stock})</option>`).join('')}
+    </select>`;
+  }
+
+  function buildModal() {
+    modal.innerHTML = `
+      <h2>🧰 Corregir Venta <span style="font-size:0.85rem;color:var(--text-dim);font-weight:400;">${venta.numero || venta.id}</span></h2>
+      <p style="color:var(--text-dim); margin-bottom:0.75rem; font-size:0.9rem;">
+        Ajusta ítems, cliente y método de pago. El inventario se recalculará automáticamente.
+      </p>
+
+      <table class="data-table" id="corr-table" style="margin-bottom:0.75rem;">
+        <thead><tr><th>Producto</th><th>Cantidad</th><th></th></tr></thead>
+        <tbody id="corr-tbody">${renderCorrItems()}</tbody>
+      </table>
+
+      <div style="display:flex; gap:0.5rem; margin-bottom:1rem; align-items:center;">
+        ${renderAddProduct()}
+        <button class="btn btn-secondary" id="corr-add-btn">+ Agregar</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+        <div class="form-group" style="margin:0;">
+          <label>Cliente (opcional)</label>
+          <select class="form-input" id="corr-cliente">
+            <option value="">Sin cliente</option>
+            ${clientesDisponibles.map(c => `<option value="${c.id}" ${venta.clienteId === c.id ? 'selected' : ''}>${c.nombre}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Método de pago</label>
+          <select class="form-input" id="corr-metodo">
+            <option value="efectivo"      ${(venta.metodoPago||'efectivo')==='efectivo'      ?'selected':''}>Efectivo</option>
+            <option value="nequi"         ${(venta.metodoPago||'')==='nequi'                 ?'selected':''}>Nequi</option>
+            <option value="tarjeta"       ${(venta.metodoPago||'')==='tarjeta'               ?'selected':''}>Tarjeta</option>
+            <option value="transferencia" ${(venta.metodoPago||'')==='transferencia'         ?'selected':''}>Transferencia</option>
+            <option value="debe"          ${(venta.metodoPago||'')==='debe'                  ?'selected':''}>Debe</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Motivo de la corrección <span style="color:var(--danger)">*</span></label>
+        <input type="text" class="form-input" id="corr-reason" placeholder="ej: Error en cantidad ingresada" required>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+        <button class="btn btn-success" id="btn-confirm-corr" style="flex:1;">💾 Guardar Corrección</button>
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      </div>`;
+
+    document.querySelectorAll(".corr-remove").forEach(btn => {
+      btn.addEventListener("click", () => {
+        corrItems.splice(Number(btn.dataset.idx), 1);
+        document.getElementById("corr-tbody").innerHTML = renderCorrItems();
+        rebindCorrEvents();
+      });
+    });
+
+    document.getElementById("corr-add-btn").addEventListener("click", () => {
+      const sel = document.getElementById("corr-add-select");
+      const prodId = sel.value;
+      if (!prodId) return;
+      const prod = productosDisponibles.find(p => p.id === prodId);
+      if (!prod) return;
+      const existing = corrItems.find(i => i.id === prodId);
+      if (existing) { existing.cantidad++; }
+      else { corrItems.push({ id: prod.id, nombre: prod.nombre, precio: prod.precio, cantidad: 1 }); }
+      document.getElementById("corr-tbody").innerHTML = renderCorrItems();
+      rebindCorrEvents();
+    });
+
+    document.getElementById("btn-confirm-corr").addEventListener("click", submitCorreccion);
+  }
+
+  function rebindCorrEvents() {
+    document.querySelectorAll(".corr-remove").forEach(btn => {
+      btn.addEventListener("click", () => {
+        corrItems.splice(Number(btn.dataset.idx), 1);
+        document.getElementById("corr-tbody").innerHTML = renderCorrItems();
+        rebindCorrEvents();
+      });
+    });
+  }
+
+  async function submitCorreccion() {
+    document.querySelectorAll(".corr-qty").forEach(input => {
+      const idx = Number(input.dataset.idx);
+      corrItems[idx].cantidad = parseInt(input.value || 1);
+    });
+
+    const reason = document.getElementById("corr-reason").value.trim();
+    const metodoPago = document.getElementById("corr-metodo").value || venta.metodoPago || "efectivo";
+    const clienteId = document.getElementById("corr-cliente").value || null;
+
+    if (!reason) { showToast("Ingresa el motivo de la corrección", "warning"); return; }
+    if (corrItems.length === 0) { showToast("La corrección debe tener al menos un ítem", "warning"); return; }
+    if (metodoPago === "debe" && !clienteId) {
+      showToast("El método 'Debe' requiere seleccionar un cliente", "warning");
+      return;
+    }
+
+    if (localStorage.getItem("modoLocal") === "true") {
+      venta.estado = "corregida";
+      venta.items = JSON.parse(JSON.stringify(corrItems));
+      venta.metodoPago = metodoPago;
+      if (clienteId) venta.clienteId = clienteId;
+      saveToLocalStorage("ventas", state.ventas);
+      showToast("Corrección guardada (modo local)", "success");
+      closeModal();
+      renderSalesHistory();
+      return;
+    }
+
+    try {
+      await apiRequest(`/sales/${venta.id}/correct`, {
+        method: "POST",
+        body: JSON.stringify({
+          reason,
+          paymentMethod: metodoPago,
+          customerId: clienteId,
+          items: corrItems.map(i => ({ productId: i.id, quantity: i.cantidad }))
+        })
+      });
+      await loadAllDataFromAPI(true);
+      showToast("Corrección guardada con trazabilidad completa", "success");
+      closeModal();
+      renderSalesHistory();
+    } catch (error) {
+      showToast(error.message || "Error al corregir la venta", "error");
+    }
+  }
+
+  buildModal();
+  openModal();
+}
+
+async function reembolsarVenta(id) {
+  const venta = state.ventas.find(v => v.id === id);
+  if (!venta) return;
+  mostrarModalReembolso(venta);
+}
+
+function mostrarModalReembolso(venta) {
+  const modal = document.getElementById("modal-content");
+  const itemsHtml = (venta.items || []).map((item, idx) => `
+    <tr>
+      <td>${item.nombre}</td>
+      <td style="text-align:center;">${item.cantidad}</td>
+      <td style="text-align:center;">
+        <input type="number" class="form-input refund-qty" data-idx="${idx}"
+          data-saleid="${item.saleItemId || ''}" data-max="${item.cantidad}"
+          value="${item.cantidad}" min="0" max="${item.cantidad}"
+          style="width:70px; text-align:center; padding:0.3rem;">
+      </td>
+    </tr>`).join('');
+
+  modal.innerHTML = `
+    <h2>🔄 Reembolso <span style="font-size:0.85rem;color:var(--text-dim);font-weight:400;">${venta.numero || venta.id}</span></h2>
+    <p style="color:var(--text-dim); margin-bottom:1rem; font-size:0.9rem;">
+      Ajusta la cantidad a reembolsar por ítem (0 para excluir ese ítem del reembolso).
+    </p>
+    <table class="data-table" style="margin-bottom:1rem;">
+      <thead><tr><th>Producto</th><th>Vendido</th><th>Reembolsar</th></tr></thead>
+      <tbody>${itemsHtml}</tbody>
+    </table>
+    <div class="form-group">
+      <label>Motivo del reembolso <span style="color:var(--danger)">*</span></label>
+      <input type="text" class="form-input" id="refund-reason" placeholder="ej: Producto defectuoso, cambio de opinión..." required>
+    </div>
+    <div class="form-group" style="margin-top:0.5rem;">
+      <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; font-size:0.95rem;">
+        <input type="checkbox" id="refund-restock" checked style="width:16px;height:16px;">
+        <span>Retornar productos al inventario</span>
+      </label>
+      <small style="color:var(--text-dim); font-size:0.8rem; margin-top:0.25rem; display:block; padding-left:1.6rem;">
+        Marca esta opción si los productos regresan al stock disponible para venta.
+      </small>
+    </div>
+    <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+      <button class="btn btn-success" id="btn-confirm-refund" style="flex:1;">✅ Procesar Reembolso</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>`;
+  openModal();
+
+  document.getElementById("btn-confirm-refund").addEventListener("click", async () => {
+    const reason = document.getElementById("refund-reason").value.trim();
+    const restock = document.getElementById("refund-restock").checked;
+
+    if (!reason) { showToast("Ingresa un motivo para el reembolso", "warning"); return; }
+
+    const refundItems = [];
+    document.querySelectorAll(".refund-qty").forEach(input => {
+      const qty = parseInt(input.value || 0);
+      const saleItemId = input.dataset.saleid;
+      if (qty > 0 && saleItemId) refundItems.push({ saleItemId, quantity: qty });
+    });
+
+    if (refundItems.length === 0) { showToast("Selecciona al menos un ítem para reembolsar", "warning"); return; }
+
+    if (localStorage.getItem("modoLocal") === "true") {
+      venta.estado = "anulada";
+      if (restock) {
+        for (const item of (venta.items || [])) {
+          const prod = state.productos.find(p => p.id === (item.productoId || item.id));
+          if (prod && prod.seguimientoInventario) prod.stock += item.cantidad;
+        }
+        saveToLocalStorage("productos", state.productos);
+      }
+      saveToLocalStorage("ventas", state.ventas);
+      showToast(`Reembolso procesado (modo local)${restock ? ", stock restaurado" : ""}`, "success");
+      closeModal();
+      renderSalesHistory();
+      return;
+    }
+
+    try {
+      await apiRequest(`/sales/${venta.id}/refunds`, {
+        method: "POST",
+        body: JSON.stringify({ type: "parcial", reason, restock, items: refundItems })
+      });
+      await loadAllDataFromAPI(true);
+      showToast(`Reembolso procesado${restock ? " — stock restaurado" : " — sin retorno al inventario"}`, "success");
+      closeModal();
+      renderSalesHistory();
+    } catch (error) {
+      showToast(error.message || "Error procesando reembolso", "error");
+    }
+  });
+}
 
 window.editarProductoEnCaliente = async function(productoId) {
   const prod = state.productos.find(p => p.id === productoId);
   if(!prod) return;
-  const nuevoPrecioStr = prompt('Editando producto: '+prod.nombre+'\n\nNuevo precio de venta:', prod.precio);
+  const nuevoPrecioStr = await customPrompt('Editando producto: '+prod.nombre+'\n\nNuevo precio de venta:', prod.precio, 'number');
   if(nuevoPrecioStr !== null) {
       const p = parseFloat(nuevoPrecioStr);
       if(!isNaN(p) && p>=0) {
           prod.precio = p;
-          if (typeof saveSheetData === 'function') await saveSheetData('productos', state.productos);
+          if (typeof saveSheetData === 'function') await saveSheetData('productos', prod);
           else saveToLocalStorage('productos', state.productos);
-          
+
           if(state.ventaActual) {
-             const cartItem = state.ventaActual.items.find(i=>i.productoId===productoId);
+             const cartItem = state.ventaActual.items.find(i=>i.id===productoId);
              if(cartItem) {
                  cartItem.precio = p;
                  cartItem.subtotal = p * cartItem.cantidad;
-                 recalculateTotals();
+                 calculateSaleTotals();
              }
           }
           actualizarCartaPOS();
@@ -2128,4 +2770,218 @@ window.editarProductoEnCaliente = async function(productoId) {
           showToast('Precio inválido', 'error');
       }
   }
+
+// =====================================================================
+// MÓDULO DE DESCUENTOS
+// =====================================================================
+
+function renderDescuentosList() {
+  const view = document.getElementById("view-descuentos");
+  if (!view) return;
+
+  const descuentos = (state.descuentos || []);
+
+  view.innerHTML = `
+    <div class="view-header">
+      <h2>🏷️ Descuentos</h2>
+      <button class="btn btn-primary" onclick="mostrarFormDescuento(null)">+ Nuevo Descuento</button>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem; padding:1rem;">
+      <p style="color:var(--text-dim); font-size:0.9rem; margin:0;">
+        Los descuentos predefinidos se pueden aplicar rápidamente en el Punto de Venta.
+        Soporte para porcentaje (%) y monto fijo ($).
+      </p>
+    </div>
+
+    ${descuentos.length === 0 ? `
+      <div class="card" style="text-align:center; padding:3rem; color:var(--text-dim);">
+        <div style="font-size:3rem; margin-bottom:1rem;">🏷️</div>
+        <p>No hay descuentos creados.</p>
+        <button class="btn btn-primary" onclick="mostrarFormDescuento(null)" style="margin-top:0.5rem;">
+          Crear primer descuento
+        </button>
+      </div>
+    ` : `
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+              <th>Descripción</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${descuentos.map(d => `
+              <tr>
+                <td><strong>${d.nombre}</strong></td>
+                <td>
+                  <span class="badge" style="background:${d.tipo === 'porcentaje' ? 'rgba(99,102,241,0.15)' : 'rgba(16,185,129,0.15)'}; color:${d.tipo === 'porcentaje' ? '#818cf8' : '#34d399'}; padding:0.2rem 0.6rem; border-radius:99px; font-size:0.8rem;">
+                    ${d.tipo === 'porcentaje' ? '% Porcentaje' : '$ Monto fijo'}
+                  </span>
+                </td>
+                <td><strong>${d.tipo === 'porcentaje' ? d.valor + '%' : '$' + Number(d.valor).toFixed(2)}</strong></td>
+                <td style="color:var(--text-dim); font-size:0.9rem;">${d.descripcion || '—'}</td>
+                <td>
+                  <span style="color:${d.activo !== false ? 'var(--success)' : 'var(--danger)'}; font-size:0.85rem;">
+                    ${d.activo !== false ? '● Activo' : '○ Inactivo'}
+                  </span>
+                </td>
+                <td>
+                  <div style="display:flex; gap:0.4rem;">
+                    <button class="btn btn-small" style="background:var(--primary);color:white;border:none;"
+                      onclick="mostrarFormDescuento('${d.id}')">✏️ Editar</button>
+                    <button class="btn btn-small btn-danger"
+                      onclick="eliminarDescuento('${d.id}')">🗑️ Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `}
+  `;
+}
+
+function mostrarFormDescuento(id) {
+  const descuento = id ? (state.descuentos || []).find(d => d.id === id) : null;
+  const titulo = descuento ? 'Editar Descuento' : 'Nuevo Descuento';
+  const modal = document.getElementById("modal-content");
+
+  modal.innerHTML = `
+    <h2>🏷️ ${titulo}</h2>
+    <form id="form-descuento" onsubmit="return false;" style="display:flex;flex-direction:column;gap:1rem;">
+
+      <div class="form-group">
+        <label>Nombre del descuento <span style="color:var(--danger)">*</span></label>
+        <input type="text" class="form-input" id="desc-nombre"
+          placeholder="ej: Descuento estudiante, Promo fin de semana..."
+          value="${descuento ? descuento.nombre : ''}" required>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label>Tipo <span style="color:var(--danger)">*</span></label>
+          <select class="form-input" id="desc-tipo" onchange="actualizarPlaceholderDescuento()">
+            <option value="porcentaje" ${!descuento || descuento.tipo === 'porcentaje' ? 'selected' : ''}>% Porcentaje</option>
+            <option value="monto" ${descuento && descuento.tipo === 'monto' ? 'selected' : ''}>$ Monto fijo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valor <span style="color:var(--danger)">*</span></label>
+          <input type="number" class="form-input" id="desc-valor"
+            placeholder="ej: 10"
+            value="${descuento ? descuento.valor : ''}"
+            min="0" step="0.01" required>
+          <small id="desc-valor-hint" style="color:var(--text-dim);font-size:0.8rem;">
+            ${!descuento || descuento.tipo === 'porcentaje' ? 'Ingresa un valor entre 0 y 100' : 'Ingresa el valor en pesos'}
+          </small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Descripción (opcional)</label>
+        <input type="text" class="form-input" id="desc-descripcion"
+          placeholder="ej: Aplica para estudiantes con carné"
+          value="${descuento ? (descuento.descripcion || '') : ''}">
+      </div>
+
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+          <input type="checkbox" id="desc-activo" ${!descuento || descuento.activo !== false ? 'checked' : ''}>
+          Descuento activo
+        </label>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+        <button class="btn btn-success" style="flex:1;" onclick="guardarDescuento('${id || ''}')">
+          ${descuento ? '💾 Guardar cambios' : '✅ Crear descuento'}
+        </button>
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      </div>
+    </form>
+  `;
+
+  openModal();
+}
+
+function actualizarPlaceholderDescuento() {
+  const tipo = document.getElementById("desc-tipo")?.value;
+  const hint = document.getElementById("desc-valor-hint");
+  if (hint) hint.textContent = tipo === 'porcentaje' ? 'Ingresa un valor entre 0 y 100' : 'Ingresa el valor en pesos';
+}
+
+async function guardarDescuento(id) {
+  const nombre = document.getElementById("desc-nombre")?.value.trim();
+  const tipo = document.getElementById("desc-tipo")?.value;
+  const valorRaw = parseFloat(document.getElementById("desc-valor")?.value || "0");
+  const descripcion = document.getElementById("desc-descripcion")?.value.trim() || "";
+  const activo = document.getElementById("desc-activo")?.checked !== false;
+
+  if (!nombre) { showToast("El nombre del descuento es obligatorio", "error"); return; }
+  if (isNaN(valorRaw) || valorRaw < 0) { showToast("El valor debe ser mayor o igual a 0", "error"); return; }
+  if (tipo === "porcentaje" && valorRaw > 100) { showToast("El porcentaje no puede superar 100%", "error"); return; }
+
+  const payload = { nombre, tipo, valor: valorRaw, descripcion, activo };
+
+  if (localStorage.getItem("modoLocal") === "true") {
+    if (id) {
+      const idx = state.descuentos.findIndex(d => d.id === id);
+      if (idx > -1) state.descuentos[idx] = { ...state.descuentos[idx], ...payload };
+    } else {
+      state.descuentos.unshift({ id: generateDiscountId(), ...payload });
+    }
+    showToast(id ? "Descuento actualizado (modo local)" : "Descuento creado (modo local)", "success");
+    closeModal();
+    renderDescuentosList();
+    return;
+  }
+
+  try {
+    const isExistingUuid = id && /^[0-9a-f-]{36}$/i.test(id);
+    const result = await apiRequest(isExistingUuid ? `/discounts/${id}` : "/discounts", {
+      method: isExistingUuid ? "PATCH" : "POST",
+      body: JSON.stringify(mapToAPI("descuentos", payload))
+    });
+    const saved = mapFromAPI("descuentos", result.data);
+    if (isExistingUuid) {
+      const idx = state.descuentos.findIndex(d => d.id === id);
+      if (idx > -1) state.descuentos[idx] = saved;
+    } else {
+      state.descuentos.unshift(saved);
+    }
+    showToast(isExistingUuid ? "Descuento actualizado" : "Descuento creado exitosamente", "success");
+    closeModal();
+    renderDescuentosList();
+  } catch (error) {
+    showToast(error.message || "Error guardando descuento", "error");
+  }
+}
+
+async function eliminarDescuento(id) {
+  const descuento = (state.descuentos || []).find(d => d.id === id);
+  if (!descuento) return;
+  if (!await customConfirm(`¿Eliminar el descuento "${descuento.nombre}"?`)) return;
+
+  if (localStorage.getItem("modoLocal") === "true") {
+    state.descuentos = state.descuentos.filter(d => d.id !== id);
+    showToast("Descuento eliminado (modo local)", "success");
+    renderDescuentosList();
+    return;
+  }
+
+  try {
+    await apiRequest(`/discounts/${encodeURIComponent(id)}`, { method: "DELETE" });
+    state.descuentos = state.descuentos.filter(d => d.id !== id);
+    showToast("Descuento eliminado", "success");
+    renderDescuentosList();
+  } catch (error) {
+    showToast(error.message || "Error eliminando descuento", "error");
+  }
+}
 };

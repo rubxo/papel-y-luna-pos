@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
 </head>
 <body>
@@ -39,6 +40,8 @@
       <a href="#" class="nav-link admin-only" data-view="compras"     data-roles="admin">🚚 Compras</a>
       <a href="#" class="nav-link admin-only" data-view="proveedores" data-roles="admin">🏢 Proveedores</a>
 
+      <a href="#" class="nav-link admin-only" data-view="descuentos" data-roles="admin">🏷️ Descuentos</a>
+
       <div class="nav-section-label admin-only">Administración</div>
       <a href="#" class="nav-link admin-only" data-view="reports" data-roles="admin">📈 Reportes</a>
       <a href="#" class="nav-link admin-only" data-view="users"   data-roles="admin">👤 Usuarios</a>
@@ -46,7 +49,7 @@
 
     <div class="sidebar-footer">
       <p>© 2026 Papel &amp; Luna</p>
-      <p>Sistema POS v2.0</p>
+      <p>Sistema POS v3.0</p>
     </div>
   </aside>
 
@@ -81,6 +84,7 @@
       <div id="view-categorias"  class="view"></div>
       <div id="view-compras"     class="view"></div>
       <div id="view-proveedores" class="view"></div>
+      <div id="view-descuentos"  class="view"></div>
       <div id="view-reports"     class="view"></div>
       <div id="view-users"       class="view"></div>
     </main>
@@ -102,13 +106,13 @@
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
   <!-- SCRIPTS -->
-  <script src="js/config.js"></script>
-  <script src="js/state.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/products.js"></script>
-  <script src="js/sales.js"></script>
-  <script src="js/reports.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/app.js"></script>
+  <script src="./js/config.js?v=20260502-5"></script>
+  <script src="./js/state.js?v=20260502-5"></script>
+  <script src="./js/api.js?v=20260502-5"></script>
+  <script src="./js/products.js?v=20260502-5"></script>
+  <script src="./js/sales.js?v=20260502-5"></script>
+  <script src="./js/reports.js?v=20260502-5"></script>
+  <script src="./js/ui.js?v=20260502-5"></script>
+  <script src="./js/app.js?v=20260502-5"></script>
 </body>
 </html>

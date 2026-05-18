@@ -1,4 +1,4 @@
-﻿function startSale() {
+function startSale() {
   state.ventaActual = {
     id: generateSaleId(),
     fecha: new Date().toLocaleDateString(),
@@ -74,56 +74,105 @@ function calculateSaleTotals() {
   }
 
   const subtotalConDescuento = state.ventaActual.subtotal - state.ventaActual.descuento;
-  state.ventaActual.impuesto = subtotalConDescuento * 0.19;
-  state.ventaActual.total = subtotalConDescuento + state.ventaActual.impuesto;
+  
+  // El precio de venta ya incluye IVA (19%).
+  // Extraer el IVA hacia atrás (Base = Total / 1.19, IVA = Total - Base)
+  state.ventaActual.total = subtotalConDescuento;
+  state.ventaActual.impuesto = subtotalConDescuento - (subtotalConDescuento / 1.19);
 }
 
 async function closeSale(metodoPago, valorRecibido) {
   if (state.ventaActual.items.length === 0) { showToast("La venta no tiene items", "warning"); return false; }
   if (state.ventaActual.total > valorRecibido) { showToast("Dinero insuficiente", "error"); return false; }
 
-  let stockOk = true;
-  state.ventaActual.items.forEach(item => {
-    const product = getProductById(item.id);
-    if (product) product.stock -= item.cantidad;
-    else stockOk = false;
-  });
+  if (localStorage.getItem("modoLocal") === "true") {
+    for (const item of state.ventaActual.items) {
+      const product = getProductById(item.id);
+      if (!product) { showToast("Producto no encontrado", "error"); return false; }
+      if (product.seguimientoInventario !== false && product.stock < item.cantidad) {
+        showToast(`Stock insuficiente. Disponible: ${product.stock}`, "warning");
+        return false;
+      }
+    }
 
-  if (!stockOk) showToast("Error descontando stock", "warning");
+    state.ventaActual.items.forEach(item => {
+      const product = getProductById(item.id);
+      if (product && product.seguimientoInventario !== false) product.stock -= item.cantidad;
+    });
 
-  const ventaCerrada = {
-    id: state.ventaActual.id,
-    fecha: state.ventaActual.fecha,
-    itemsJson: JSON.stringify(state.ventaActual.items),
-    subtotal: state.ventaActual.subtotal.toFixed(2),
-    impuesto: state.ventaActual.impuesto.toFixed(2),
-    total: state.ventaActual.total.toFixed(2),
-    metodoPago: metodoPago,
-    cambio: (valorRecibido - state.ventaActual.total).toFixed(2),
-    estado: "cerrada"
-  };
+    const ventaCerrada = {
+      id: state.ventaActual.id,
+      fecha: state.ventaActual.fecha,
+      items: [...state.ventaActual.items],
+      itemsJson: JSON.stringify(state.ventaActual.items),
+      subtotal: state.ventaActual.subtotal,
+      descuento: state.ventaActual.descuento,
+      descuentoTipo: state.ventaActual.descuentoTipo,
+      descuentoValor: state.ventaActual.descuentoValor,
+      impuesto: state.ventaActual.impuesto,
+      total: state.ventaActual.total,
+      metodoPago,
+      cambio: metodoPago === "efectivo" ? valorRecibido - state.ventaActual.total : 0,
+      estado: "cerrada"
+    };
 
-  const success = await saveSheetData("ventas", ventaCerrada);
-  if (success) {
-    state.ventas.push(ventaCerrada);
+    state.ventas.unshift(ventaCerrada);
+    saveToLocalStorage("ventas", state.ventas);
+    saveToLocalStorage("productos", state.productos);
+    localStorage.setItem("backup_ventas", JSON.stringify(state.ventas));
+    localStorage.setItem("backup_productos", JSON.stringify(state.productos));
+    state.ventaActual = null;
+    showToast("Venta cerrada en modo local", "success");
+    return true;
+  }
+
+  try {
+    const rawClienteId = state.ventaActual.clienteId || null;
+    const isValidUUID = rawClienteId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawClienteId);
+    const result = await apiRequest("/sales", {
+      method: "POST",
+      body: JSON.stringify({
+        customerId: isValidUUID ? rawClienteId : null,
+        paymentMethod: metodoPago,
+        amountReceived: valorRecibido,
+        discountType: state.ventaActual.descuentoValor > 0 ? state.ventaActual.descuentoTipo : null,
+        discountValue: state.ventaActual.descuentoValor || 0,
+        items: state.ventaActual.items.map(item => ({
+          productId: item.id,
+          quantity: item.cantidad
+        }))
+      })
+    });
+
+    const ventaCerrada = mapFromAPI("ventas", result.data);
+    state.ventas.unshift(ventaCerrada);
+    await loadAllDataFromAPI(true);
     state.ventaActual = null;
     showToast("Venta cerrada exitosamente", "success");
     return true;
-  } else {
-    showToast("Error guardando venta", "error");
+  } catch (error) {
+    showToast(error.message || "Error guardando venta", "error");
     return false;
   }
 }
 
 function pausarVentaActual() {
-  if (!state.ventaActual || state.ventaActual.items.length === 0) { showToast("No hay venta actual para pausar", "warning"); return false; }
+  if (!state.ventaActual || state.ventaActual.items.length === 0) { 
+    showToast("No hay venta actual para pausar", "warning"); 
+    return false; 
+  }
   state.ventasAbiertas.push({
-    id: state.ventaActual.id, fecha: state.ventaActual.fecha,
+    id: state.ventaActual.id, 
+    fecha: state.ventaActual.fecha,
     items: [...state.ventaActual.items],
-    subtotal: state.ventaActual.subtotal, impuesto: state.ventaActual.impuesto, total: state.ventaActual.total
+    subtotal: state.ventaActual.subtotal, 
+    impuesto: state.ventaActual.impuesto, 
+    total: state.ventaActual.total
   });
   state.ventaActual = null;
-  showToast("Venta pausada", "success");
+  guardarVentasAbiertas();
+  mostrarVentasAbiertas();
+  showToast("Venta pausada en espera", "success");
   return true;
 }
 
@@ -137,8 +186,40 @@ function retomarVenta(idAbierta) {
   };
   const index = state.ventasAbiertas.indexOf(openSale);
   state.ventasAbiertas.splice(index, 1);
+  guardarVentasAbiertas();
+  mostrarVentasAbiertas();
   showToast("Venta reanudada", "success");
   return true;
+}
+
+async function eliminarVentaPausada(idAbierta) {
+  const index = state.ventasAbiertas.findIndex(v => v.id === idAbierta);
+  if (index === -1) { showToast("Venta no encontrada", "error"); return false; }
+  
+  const venta = state.ventasAbiertas[index];
+  if (await customConfirm(`¿Eliminar la venta en espera ${venta.id}? Total: $${venta.total.toFixed(2)}`)) {
+    state.ventasAbiertas.splice(index, 1);
+    guardarVentasAbiertas();
+    mostrarVentasAbiertas();
+    showToast("Venta pausada eliminada", "warning");
+    return true;
+  }
+  return false;
+}
+
+function guardarVentasAbiertas() {
+  localStorage.setItem("ventasAbiertas", JSON.stringify(state.ventasAbiertas));
+}
+
+function cargarVentasAbiertas() {
+  const guardadas = localStorage.getItem("ventasAbiertas");
+  if (guardadas) {
+    try {
+      state.ventasAbiertas = JSON.parse(guardadas);
+    } catch (e) {
+      console.error("Error al cargar ventas abiertas:", e);
+    }
+  }
 }
 
 function getSalesHistory() {
@@ -199,13 +280,27 @@ function recordMissingItem(productoNombre, productoId, cantidad, clienteNombre) 
 }
 
 async function saveMissingItem(faltante) {
-  state.faltantes.push(faltante);
-  const saved = await saveSheetData("faltantes", faltante);
-  if (saved) {
+  if (localStorage.getItem("modoLocal") === "true") {
+    state.faltantes.push(faltante);
+    showToast("Faltante registrado (modo local)", "success");
+    return true;
+  }
+  try {
+    const result = await apiRequest("/missing-requests", {
+      method: "POST",
+      body: JSON.stringify({
+        productName: faltante.nombre,
+        type: faltante.estadoProducto === "no registrado" ? "no_registrado" : "agotado",
+        quantity: faltante.cantidad ? Number(faltante.cantidad) : null,
+        notes: faltante.observacion || null
+      })
+    });
+    const saved = mapFromAPI("faltantes", result.data);
+    state.faltantes.unshift(saved);
     showToast("Faltante registrado exitosamente", "success");
     return true;
-  } else {
-    showToast("Error guardando faltante", "error");
+  } catch (error) {
+    showToast(error.message || "Error guardando faltante", "error");
     return false;
   }
 }
