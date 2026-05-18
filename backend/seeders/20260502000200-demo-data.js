@@ -20,8 +20,30 @@ module.exports = {
     ]);
 
     await queryInterface.bulkInsert("users", [
-      { id: randomUUID(), role_id: roles.admin, full_name: "Administrador Papel & Luna", username: "admin", password_hash: await bcrypt.hash("admin123", 10), active: true, created_at: now(), updated_at: now() },
-      { id: randomUUID(), role_id: roles.cajero, full_name: "Cajero Principal", username: "cajero", password_hash: await bcrypt.hash("cajero123", 10), active: true, created_at: now(), updated_at: now() }
+      {
+        id: randomUUID(),
+        role_id: roles.admin,
+        full_name: "Administrador Papel & Luna",
+        username: "admin",
+        email: "admin@papelyluna.co",
+        password_hash: await bcrypt.hash("admin123", 10),
+        active: true,
+        permissions: "[]",
+        created_at: now(),
+        updated_at: now()
+      },
+      {
+        id: randomUUID(),
+        role_id: roles.cajero,
+        full_name: "Cajero Principal",
+        username: "cajero",
+        email: null,
+        password_hash: await bcrypt.hash("cajero123", 10),
+        active: true,
+        permissions: "[]",
+        created_at: now(),
+        updated_at: now()
+      }
     ]);
 
     const categories = [

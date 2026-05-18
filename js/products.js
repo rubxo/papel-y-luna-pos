@@ -1,11 +1,17 @@
 function getAllProducts() { return state.productos; }
 function getProductById(id) { return state.productos.find(p => p.id === id); }
 function getProductByIndex(index) { return state.productos[index] || null; }
+
+function normalizeStr(str) {
+  return (str || "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
 function searchProducts(query) {
-  const q = query.toLowerCase();
+  const q = normalizeStr(query);
   return state.productos.filter(p =>
-    p.nombre.toLowerCase().includes(q) ||
-    p.descripcion.toLowerCase().includes(q)
+    normalizeStr(p.nombre).includes(q) ||
+    normalizeStr(p.descripcion).includes(q) ||
+    normalizeStr(p.codigo).includes(q)
   );
 }
 
@@ -18,9 +24,8 @@ function validateProduct(data) {
 }
 
 async function createProduct(data) {
-  console.log('🆕 Creando producto:', data);
   const error = validateProduct(data);
-  if (error) { showToast(error, "error"); console.error(error); return false; }
+  if (error) { showToast(error, "error"); return false; }
 
   const newProduct = {
     codigo: data.codigo || `P-${Date.now().toString().slice(-4)}`,
@@ -35,8 +40,6 @@ async function createProduct(data) {
     seguimientoInventario: true
   };
 
-  console.log('📝 Objeto producto a guardar:', newProduct);
-  
   // Siempre agregamos al estado local primero para que la app se sienta instantánea
   const savedProduct = await saveSheetData("productos", newProduct);
   state.productos.push(savedProduct && savedProduct !== true ? savedProduct : { ...newProduct, id: `LOCAL-${Date.now()}` });
@@ -51,12 +54,11 @@ async function createProduct(data) {
 }
 
 async function updateProduct(id, data) {
-  console.log('✏️ Editando producto:', id, data);
   const error = validateProduct(data);
-  if (error) { showToast(error, "error"); console.error(error); return false; }
+  if (error) { showToast(error, "error"); return false; }
 
   const product = getProductById(id);
-  if (!product) { showToast("❌ Producto no encontrado", "error"); console.error('Producto no encontrado:', id); return false; }
+  if (!product) { showToast("Producto no encontrado", "error"); return false; }
 
   product.nombre = data.nombre;
   product.descripcion = data.descripcion || "";
@@ -67,8 +69,6 @@ async function updateProduct(id, data) {
   product.categoria = data.categoria || product.categoria;
   product.imagen = data.imagen !== undefined ? data.imagen : product.imagen;
 
-  console.log('📝 Producto actualizado a guardar:', product);
-  
   const savedProduct = await saveSheetData("productos", product);
   if (savedProduct && savedProduct !== true) Object.assign(product, savedProduct);
   

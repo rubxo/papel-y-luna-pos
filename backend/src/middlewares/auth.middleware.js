@@ -43,4 +43,25 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { authRequired, requireRole };
+// Verifica que el usuario tenga acceso a un módulo específico.
+// Los admins siempre pasan. Para otros roles, se revisa su campo permissions.
+function requirePermission(module) {
+  return (req, _res, next) => {
+    const roleName = req.user?.role?.name;
+    if (roleName === "admin") return next();
+
+    let permissions = req.user?.permissions || "[]";
+    if (typeof permissions === "string") {
+      try { permissions = JSON.parse(permissions); } catch (_e) { permissions = []; }
+    }
+
+    if (!Array.isArray(permissions) || !permissions.includes(module)) {
+      const error = new Error(`No tienes acceso al módulo '${module}'`);
+      error.status = 403;
+      return next(error);
+    }
+    next();
+  };
+}
+
+module.exports = { authRequired, requireRole, requirePermission };

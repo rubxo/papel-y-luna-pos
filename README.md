@@ -1,6 +1,6 @@
-# Papel & Luna POS — MVP 3
+# Papel & Luna POS — v3.0
 
-Sistema de punto de venta full-stack para papelería. Frontend SPA en Vanilla JS + backend Node.js/Express con SQLite (desarrollo) o MySQL (producción).
+Sistema de punto de venta full-stack para papelería. Frontend SPA en HTML/CSS/JS vanilla con diseño cálido "Papel & Luna", backend Node.js/Express/Sequelize con SQLite (desarrollo) o MySQL (producción).
 
 ---
 
@@ -50,10 +50,10 @@ IVA_RATE=0.19
 
 ```bash
 # Crear las tablas
-npx sequelize-cli db:migrate
+npm run db:migrate
 
 # Cargar datos de prueba (usuarios, productos, categorías)
-node seed.js
+npm run db:seed
 ```
 
 ### 5. Iniciar el servidor
@@ -143,6 +143,18 @@ http://localhost:8000
 - ✅ Rol admin: acceso completo
 - ✅ Rol cajero: acceso restringido
 - ✅ Restricciones en backend y frontend
+- ✅ Audit log de acciones críticas (login, creación/edición/desactivación de usuarios, cambio de contraseña)
+
+### Gestión de usuarios (admin)
+- ✅ CRUD completo de usuarios
+- ✅ Activar / desactivar (soft delete — nunca se borran físicamente)
+- ✅ Cambio de contraseña por admin o por el propio usuario
+- ✅ Campo email opcional
+- ✅ Permisos granulares por módulo
+
+### Configuración
+- ✅ Endpoint `/api/settings` para leer y actualizar configuración clave-valor
+- ✅ Endpoint `/api/audit-log` con paginación y filtros por acción/entidad/fecha
 
 ### Reportes (admin)
 - ✅ Ventas por rango de fechas
@@ -198,13 +210,32 @@ http://localhost:8000
 | GET | `/api/purchases` | Listar compras | Todos |
 | POST | `/api/purchases` | Registrar compra | Admin |
 
+### Usuarios (admin)
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/users` | Listar usuarios |
+| POST | `/api/users` | Crear usuario |
+| PATCH | `/api/users/:id` | Editar usuario |
+| PATCH | `/api/users/:id/status` | Activar / desactivar |
+| PATCH | `/api/users/:id/password` | Cambiar contraseña (admin) |
+| DELETE | `/api/users/:id` | Desactivar (soft delete) |
+| GET | `/api/users/me/permissions` | Permisos del usuario actual |
+| PATCH | `/api/users/me/password` | Cambiar propia contraseña |
+
 ### Entidades
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | GET/POST/PATCH/DELETE | `/api/customers` | Clientes |
 | GET/POST/PATCH/DELETE | `/api/suppliers` | Proveedores |
-| GET/POST/PATCH/DELETE | `/api/users` | Usuarios (admin) |
 | GET/POST/PATCH/DELETE | `/api/missing-requests` | Faltantes |
+
+### Configuración y auditoría (admin)
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/settings` | Leer configuración del negocio |
+| PUT | `/api/settings/:key` | Actualizar un valor |
+| GET | `/api/audit-log` | Log de acciones. Soporta `?page&limit&action&entity&from&to` |
+| GET | `/api/roles` | Lista de roles disponibles |
 
 ### Reportes (admin)
 | Método | Ruta | Descripción |
@@ -256,52 +287,44 @@ curl "http://localhost:8000/api/reports/sales?desde=$(date +%Y-%m-%d)&hasta=$(da
 
 ## Despliegue en producción
 
-### Opción A: Todo en Railway (recomendado — frontend + backend juntos)
+### Backend → Render (Web Service)
 
-1. Crear cuenta en [railway.app](https://railway.app)
-2. Nuevo proyecto → Deploy from GitHub repo
-3. Configurar el **Root Directory** como `backend/`
-4. Agregar servicio de base de datos MySQL en Railway
-5. En **Variables de entorno** del servicio, agregar:
+El archivo `render.yaml` en la raíz del proyecto automatiza la configuración.
+
+1. Conecta el repositorio en [render.com](https://render.com) → **New Web Service**
+2. **Root Directory**: `backend`
+3. **Build Command**: `npm install && npm run db:migrate && npm run db:seed`
+4. **Start Command**: `npm start`
+5. Crea un servicio MySQL en Render y copia las credenciales
+6. En **Environment** del Web Service agrega:
 
 ```env
 NODE_ENV=production
-PORT=8000
-JWT_SECRET=<clave-segura-32-chars>
+JWT_SECRET=<genera con: node -e "console.log(require('crypto').randomBytes(40).toString('hex'))">
+FRONTEND_URL=https://papelyluna.netlify.app
+DB_HOST=<host MySQL de Render>
+DB_PORT=3306
+DB_NAME=papel_luna_pos
+DB_USER=<usuario>
+DB_PASSWORD=<password>
 IVA_RATE=0.19
-DB_HOST=${{MySQL.MYSQLHOST}}
-DB_PORT=${{MySQL.MYSQLPORT}}
-DB_NAME=${{MySQL.MYSQLDATABASE}}
-DB_USER=${{MySQL.MYSQLUSER}}
-DB_PASSWORD=${{MySQL.MYSQLPASSWORD}}
-FRONTEND_URL=*
+LOW_STOCK_THRESHOLD=10
 ```
 
-6. Railway ejecuta automáticamente `npm install` y `node src/server.js`
-7. Ejecutar migraciones una vez:
-   ```bash
-   # Desde Railway CLI o la terminal del servicio
-   npx sequelize-cli db:migrate
-   node seed.js
-   ```
-8. La URL que da Railway sirve tanto el frontend como la API
+### Frontend → Netlify
 
-### Opción B: Frontend en Netlify + Backend en Railway (separados)
-
-**Backend en Railway:**
-1. Mismo proceso que Opción A
-2. Anotar la URL del backend (ej: `https://papel-luna.up.railway.app`)
-3. Agregar esa URL en `FRONTEND_URL`
-
-**Frontend en Netlify:**
-1. Crear cuenta en [netlify.com](https://netlify.com)
-2. Arrastrar la carpeta raíz del proyecto (no `backend/`) a Netlify
-3. **Build settings:** no build command, publish directory = `.`
-4. Editar `js/config.js` y cambiar `_productionApiUrl`:
+1. Arrastra la carpeta raíz del proyecto (**sin** incluir `backend/`) a [netlify.com](https://netlify.com)
+2. No requiere build command — es HTML estático
+3. En `js/config.js`, reemplaza `_productionApiUrl` con la URL real de Render:
    ```javascript
-   _productionApiUrl: "https://tu-backend.up.railway.app/api"
+   _productionApiUrl: "https://papel-y-luna-backend.onrender.com/api"
    ```
-5. Redesplegar
+
+### Opción alternativa: todo en Railway
+
+1. Mismo proceso pero sin separar frontend/backend
+2. Railway sirve ambos desde el mismo dominio
+3. En `FRONTEND_URL` poner `*` o la URL que asigne Railway
 
 ---
 
@@ -311,7 +334,7 @@ FRONTEND_URL=*
 Tarea 23/
 ├── index.html              # SPA principal
 ├── netlify.toml            # Config de despliegue en Netlify
-├── css/styles.css          # Estilos glassmorphism
+├── css/styles.css          # Design system "Papel & Luna" (light/dark mode)
 ├── js/
 │   ├── config.js           # URL del API y constantes
 │   ├── state.js            # Estado global de la app
@@ -334,11 +357,9 @@ Tarea 23/
     │   ├── validators/         # Esquemas Zod
     │   └── config/             # database.js, env.js
     ├── migrations/             # Esquema de BD (versionado)
-    │   └── 20260517000400-create-discounts.js  # Nuevo en MVP 3
-    ├── seed.js                 # Datos iniciales
-    ├── railway.toml            # Config despliegue Railway
+    ├── seeders/                # Datos iniciales (roles, usuarios, productos)
     ├── .env.example            # Plantilla de variables de entorno
-    └── papel_luna_pos.sqlite   # BD de desarrollo
+    └── papel_luna_pos.sqlite   # BD de desarrollo (SQLite)
 ```
 
 ---

@@ -20,6 +20,10 @@ const User = sequelize.define("User", {
     allowNull: false,
     unique: true
   },
+  email: {
+    type: DataTypes.STRING(140),
+    allowNull: true
+  },
   passwordHash: {
     type: DataTypes.STRING(255),
     allowNull: false
@@ -41,5 +45,13 @@ const User = sequelize.define("User", {
 }, {
   tableName: "users"
 });
+
+// Defensa en profundidad: nunca serializar passwordHash hacia el cliente
+User.prototype.toJSON = function () {
+  const values = Object.assign({}, this.get());
+  delete values.passwordHash;
+  delete values.password_hash;
+  return values;
+};
 
 module.exports = User;

@@ -41,4 +41,29 @@ const refundSaleSchema = z.object({
   query: z.object({}).optional()
 });
 
-module.exports = { createSaleSchema, refundSaleSchema };
+const cancelSaleSchema = z.object({
+  body: z.object({
+    reason: z.string().min(3, "El motivo debe tener al menos 3 caracteres").max(500).optional()
+  }),
+  params: z.object({ id: z.string().uuid("ID de venta inválido") }),
+  query: z.object({}).optional()
+});
+
+const correctSaleSchema = z.object({
+  body: z.object({
+    reason: z.string().min(3, "El motivo debe tener al menos 3 caracteres").max(500).optional(),
+    items: z.array(z.object({
+      productId: z.string().uuid("ID de producto inválido"),
+      quantity: z.coerce.number().int().positive("La cantidad debe ser positiva")
+    })).min(1, "Debe incluir al menos un ítem"),
+    discountType: z.enum(["porcentaje", "monto"]).nullable().optional(),
+    discountValue: z.coerce.number().min(0).optional(),
+    paymentMethod: z.enum(["efectivo", "tarjeta", "transferencia", "nequi", "debe"]).optional(),
+    customerId: z.string().uuid().nullable().optional(),
+    notes: z.string().max(500).optional()
+  }),
+  params: z.object({ id: z.string().uuid("ID de venta inválido") }),
+  query: z.object({}).optional()
+});
+
+module.exports = { createSaleSchema, refundSaleSchema, cancelSaleSchema, correctSaleSchema };

@@ -36,15 +36,22 @@ if (env.nodeEnv === "development") {
     host: env.db.host,
     port: env.db.port,
     dialect: "mysql",
-    logging: false,    dialectOptions: {
+    logging: false,
+    charset: "utf8mb4",
+    collate: "utf8mb4_unicode_ci",
+    dialectOptions: {
       ssl: {
         require: true,
         rejectUnauthorized: false
-      }
-    },    define: {
+      },
+      charset: "utf8mb4"
+    },
+    define: {
       underscored: true,
       timestamps: true,
-      paranoid: false
+      paranoid: false,
+      charset: "utf8mb4",
+      collate: "utf8mb4_unicode_ci"
     }
   });
   console.log(`🗄️ Conectando a MySQL: ${env.db.host}:${env.db.port}/${env.db.name}`);

@@ -82,23 +82,19 @@ function getFriendlyApiMessage(status, message) {
 }
 
 async function loginToAPI(username, password) {
-  try {
-    const databaseReady = await isDatabaseReady();
-    if (!databaseReady) return loginLocalDemo(username, password);
-
-    const result = await apiRequest("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ username, password })
-    });
-
-    const user = mapUserFromAPI(result.user);
-    setAuthSession(result.token, user);
-    localStorage.removeItem("modoLocal");
-    return user;
-  } catch (error) {
-    if (!debeUsarModoLocal(error)) throw error;
-    return loginLocalDemo(username, password);
+  const databaseReady = await isDatabaseReady();
+  if (!databaseReady) {
+    throw new Error("No se puede conectar al servidor. Verifica que el backend esté en línea.");
   }
+
+  const result = await apiRequest("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password })
+  });
+
+  const user = mapUserFromAPI(result.user);
+  setAuthSession(result.token, user);
+  return user;
 }
 
 async function isDatabaseReady() {
@@ -110,33 +106,6 @@ async function isDatabaseReady() {
   }
 }
 
-function loginLocalDemo(username, password) {
-  const localUser = LOCAL_DEMO_USERS.find(user => user.usuario === username && user.password === password);
-  if (!localUser) {
-    throw new Error("La base de datos no está disponible y las credenciales locales no coinciden.");
-  }
-
-  const user = {
-    id: localUser.id,
-    nombre: localUser.nombre,
-    usuario: localUser.usuario,
-    rol: localUser.rol,
-    activo: true,
-    permisos: window.PERMISOS ? window.PERMISOS[localUser.rol] : []
-  };
-  localStorage.setItem("modoLocal", "true");
-  localStorage.setItem("accessToken", "local-demo-token");
-  localStorage.setItem("usuarioActual", JSON.stringify(user));
-  seedLocalDemoData();
-  return user;
-}
-
-function debeUsarModoLocal(error) {
-  return error.status === 0 ||
-    error.status >= 500 ||
-    /ECONNREFUSED|base de datos|servidor/i.test(error.message || "") ||
-    /ECONNREFUSED|SequelizeConnectionRefusedError/i.test(error.originalMessage || "");
-}
 
 async function validateSession() {
   if (localStorage.getItem("modoLocal") === "true") {
@@ -539,16 +508,18 @@ function mapUserFromAPI(user) {
   if (typeof permissions === 'string') {
     try { permissions = JSON.parse(permissions); } catch(e) { permissions = []; }
   }
-  
+
   return {
     id: user.id,
     nombre: user.fullName || user.nombre || "",
     usuario: user.username || user.usuario || "",
+    email: user.email || null,
     rol: (user.role && user.role.name) || user.role || user.rol || "cajero",
     activo: user.active !== false && user.activo !== false,
     permisos: permissions,
-    roleId: user.roleId || user.role_id,
-    fechaCreacion: formatDate(user.createdAt || user.created_at || user.fechaCreacion)
+    roleId: user.roleId || user.role?.id || user.role_id,
+    fechaCreacion: formatDate(user.createdAt || user.created_at || user.fechaCreacion),
+    ultimoLogin: formatDate(user.lastLoginAt || user.last_login_at)
   };
 }
 
@@ -565,10 +536,6 @@ function parseItems(value) {
   try { return JSON.parse(value); } catch (e) { return []; }
 }
 
-const LOCAL_DEMO_USERS = [
-  { id: "LOCAL-ADMIN", nombre: "Administrador", usuario: "admin", password: "admin123", rol: "admin" },
-  { id: "LOCAL-CAJERO", nombre: "Cajero Principal", usuario: "cajero", password: "cajero123", rol: "cajero" }
-];
 
 function seedLocalDemoData() {
   if (localStorage.getItem("demoDataReady") === "true") {

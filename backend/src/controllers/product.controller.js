@@ -4,11 +4,42 @@ const { emitEvent } = require("../sockets");
 
 async function listProducts(req, res, next) {
   try {
-    const products = await Product.findAll({
+    const { page, limit: limitStr, search, categoryId } = req.query;
+    const where = {};
+    if (search) {
+      const { Op } = require("sequelize");
+      where[Op.or] = [
+        { name: { [Op.like]: `%${search}%` } },
+        { description: { [Op.like]: `%${search}%` } }
+      ];
+    }
+    if (categoryId) where.categoryId = categoryId;
+
+    // Si no se envía page, devuelve todo (backward-compatible con el frontend actual)
+    if (!page) {
+      const products = await Product.findAll({
+        where,
+        include: [{ model: Category, as: "category" }],
+        order: [["name", "ASC"]]
+      });
+      return res.json({ success: true, data: products });
+    }
+
+    const limit = Math.min(parseInt(limitStr) || 50, 200);
+    const offset = (Math.max(parseInt(page), 1) - 1) * limit;
+    const { count, rows } = await Product.findAndCountAll({
+      where,
       include: [{ model: Category, as: "category" }],
-      order: [["name", "ASC"]]
+      order: [["name", "ASC"]],
+      limit,
+      offset
     });
-    res.json({ success: true, data: products });
+
+    res.json({
+      success: true,
+      data: rows,
+      pagination: { total: count, page: parseInt(page), limit, pages: Math.ceil(count / limit) }
+    });
   } catch (error) {
     next(error);
   }

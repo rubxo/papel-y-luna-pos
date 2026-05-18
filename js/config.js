@@ -1,20 +1,19 @@
-// CONFIGURACIÓN CENTRALIZADA - Papel & Luna
+// CONFIGURACIÓN CENTRALIZADA — Papel & Luna POS
 
 const CONFIG = {
-  // Puerto del servidor (solo para desarrollo local)
+  // Puerto del servidor solo para desarrollo local
   PORT: 8000,
 
-  // URL del backend en producción.
-  // IMPORTANTE PARA PRODUCCIÃ“N: AsegÃºrate de cambiar "TU-BACKEND.onrender.com"
-  // por la URL real que te asigne Render al desplegar el backend.
+  // URL del backend en producción (Render).
+  // Reemplaza con la URL real que te asigne Render al desplegar.
   _productionApiUrl: "https://papel-y-luna-backend.onrender.com/api",
 
-  // API ENDPOINT — detecta automáticamente local vs producción
+  // API_URL detecta automáticamente local vs producción
   get API_URL() {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
       return `http://localhost:${this.PORT}/api`;
     }
-    // En producción: si hay URL explícita, usarla; si no, usar mismo origen (Railway all-in-one)
+    // En producción: URL explícita de Render, o mismo origen (Railway/all-in-one)
     return this._productionApiUrl || `${location.origin}/api`;
   },
 
@@ -22,12 +21,13 @@ const CONFIG = {
     return `http://localhost:${this.PORT}`;
   },
 
+  // Paleta "Papel & Luna" — mantener sincronizado con css/styles.css :root
   THEME: {
-    COLOR_PRIMARY: "#667eea",
-    COLOR_SECONDARY: "#764ba2",
-    COLOR_SUCCESS: "#10b981",
-    COLOR_ERROR: "#ef4444",
-    COLOR_WARNING: "#f59e0b",
+    COLOR_PRIMARY: "#3D6B9E",   // azul luna
+    COLOR_SUCCESS: "#4A7C59",   // verde musgo
+    COLOR_ERROR:   "#A63228",   // terracota
+    COLOR_WARNING: "#B87333",   // cobre
+    COLOR_INFO:    "#5B7FA6",
   },
 
   DEBUG_MODE: false,

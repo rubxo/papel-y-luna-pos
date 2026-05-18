@@ -28,8 +28,10 @@ function calculateTotals(items, discountType, discountValue) {
   }
 
   const taxable = roundMoney(subtotal - discountTotal);
-  const taxTotal = roundMoney(taxable * env.business.ivaRate);
-  const total = roundMoney(taxable + taxTotal);
+  // Los precios de venta incluyen IVA — se extrae el componente para reportar,
+  // pero el total no cambia (IVA ya está incluido en el precio).
+  const taxTotal = roundMoney(taxable * env.business.ivaRate / (1 + env.business.ivaRate));
+  const total = taxable;
 
   return { subtotal, discountTotal, taxTotal, total };
 }

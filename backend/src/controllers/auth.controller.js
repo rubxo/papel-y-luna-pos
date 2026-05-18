@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const { User, Role } = require("../models");
 const { signAccessToken } = require("../utils/tokens");
+const { logAction } = require("../services/audit.service");
 
 async function login(req, res, next) {
   try {
@@ -10,7 +11,15 @@ async function login(req, res, next) {
       include: [{ model: Role, as: "role" }]
     });
 
+    // Usuario no existe o inactivo — misma respuesta genérica para no filtrar info
     if (!user || !user.active) {
+      await logAction({
+        userId: null,
+        action: "LOGIN_FAILED",
+        entity: "auth",
+        entityId: null,
+        details: { username, reason: user ? "inactive" : "not_found", ip: req.ip }
+      }).catch(() => {});
       const error = new Error("Usuario o contraseña incorrectos");
       error.status = 401;
       throw error;
@@ -18,6 +27,13 @@ async function login(req, res, next) {
 
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) {
+      await logAction({
+        userId: user.id,
+        action: "LOGIN_FAILED",
+        entity: "auth",
+        entityId: user.id,
+        details: { username, reason: "wrong_password", ip: req.ip }
+      }).catch(() => {});
       const error = new Error("Usuario o contraseña incorrectos");
       error.status = 401;
       throw error;
@@ -25,6 +41,14 @@ async function login(req, res, next) {
 
     user.lastLoginAt = new Date();
     await user.save();
+
+    await logAction({
+      userId: user.id,
+      action: "LOGIN",
+      entity: "auth",
+      entityId: user.id,
+      details: { username, ip: req.ip }
+    }).catch(() => {});
 
     res.json({
       success: true,
@@ -49,6 +73,7 @@ function serializeUser(user) {
     id: user.id,
     fullName: user.fullName,
     username: user.username,
+    email: user.email || null,
     role: user.role?.name,
     roleLabel: user.role?.label,
     active: user.active,

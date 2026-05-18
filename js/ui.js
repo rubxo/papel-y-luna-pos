@@ -1,233 +1,67 @@
 // ========== PANTALLA DE LOGIN ==========
 
 function mostrarPantallaLogin() {
-  // Orbs de fondo para la pantalla de login
   document.body.innerHTML = `
-    <div class="orb-1"></div>
-    <div class="orb-2"></div>
-    <div class="orb-3"></div>
+    <div class="login-wrapper">
+      <div id="login-card" class="login-card">
 
-    <div style="
-      width: 100%;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Outfit', sans-serif;
-      padding: 2rem;
-      position: relative;
-    ">
-      <div id="login-card" style="
-        background: rgba(12, 12, 30, 0.88);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border-radius: 24px;
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(59,130,246,0.1);
-        padding: 3rem;
-        width: 100%;
-        max-width: 440px;
-        position: relative;
-        overflow: hidden;
-      ">
-        <!-- Acento superior de color -->
-        <div style="
-          position: absolute; top: 0; left: 0; right: 0;
-          height: 3px;
-          background: linear-gradient(90deg, #3B82F6, #8B5CF6, #06B6D4);
-        "></div>
-
-        <!-- Encabezado -->
-        <div style="text-align: center; margin-bottom: 2.5rem;">
-          <div style="
-            font-size: 3rem; margin-bottom: 0.5rem;
-            filter: drop-shadow(0 0 16px rgba(139,92,246,0.6));
-            animation: loginLogoGlow 3s ease-in-out infinite alternate;
-          ">🌙</div>
-          <h1 style="
-            font-size: 2rem;
-            margin: 0 0 0.3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.03em;
-          ">Papel &amp; Luna</h1>
-          <p style="
-            color: #8892AA;
-            margin: 0;
-            font-size: 0.9rem;
-            font-weight: 500;
-          ">Sistema POS · Iniciar Sesión</p>
+        <div class="login-header">
+          <span class="login-logo">🌙</span>
+          <h1>Papel &amp; Luna</h1>
+          <p>Sistema POS · Iniciar Sesión</p>
         </div>
 
-        <form id="login-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <form id="login-form" class="login-form">
           <div>
-            <label style="
-              display: block;
-              margin-bottom: 0.5rem;
-              font-weight: 600;
-              font-size: 0.78rem;
-              text-transform: uppercase;
-              letter-spacing: 0.08em;
-              color: #8892AA;
-            ">Usuario</label>
-            <input type="text" id="login-usuario" placeholder="ej: admin" autocomplete="username" style="
-              width: 100%;
-              padding: 0.85rem 1rem;
-              border: 1px solid rgba(255,255,255,0.1);
-              border-radius: 10px;
-              font-size: 0.95rem;
-              box-sizing: border-box;
-              background: rgba(255,255,255,0.05);
-              color: #F0F4FF;
-              font-family: 'Outfit', sans-serif;
-              transition: all 0.25s ease;
-              outline: none;
-            " autofocus required>
+            <label class="login-label" for="login-usuario">Usuario</label>
+            <input type="text" id="login-usuario" class="login-input"
+              placeholder="ej: admin" autocomplete="username" autofocus required>
           </div>
 
           <div>
-            <label style="
-              display: block;
-              margin-bottom: 0.5rem;
-              font-weight: 600;
-              font-size: 0.78rem;
-              text-transform: uppercase;
-              letter-spacing: 0.08em;
-              color: #8892AA;
-            ">Contraseña</label>
-            <div style="position: relative; display: flex; align-items: center;">
-              <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" style="
-                width: 100%;
-                padding: 0.85rem 1rem;
-                padding-right: 2.5rem;
-                border: 1px solid rgba(255,255,255,0.1);
-                border-radius: 10px;
-                font-size: 0.95rem;
-                box-sizing: border-box;
-                background: rgba(255,255,255,0.05);
-                color: #F0F4FF;
-                font-family: 'Outfit', sans-serif;
-                transition: all 0.25s ease;
-                outline: none;
-              " required>
-              <button type="button" class="toggle-password-login" id="toggle-password-login" style="
-                position: absolute;
-                right: 10px;
-                background: none;
-                border: none;
-                cursor: pointer;
-                font-size: 18px;
-                padding: 0;
-                color: #8892AA;
-                opacity: 0.6;
-                transition: opacity 0.2s;
-              ">👁️</button>
+            <label class="login-label" for="login-password">Contraseña</label>
+            <div class="login-input-wrap">
+              <input type="password" id="login-password" class="login-input"
+                placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" id="toggle-password-login" class="login-toggle-pass">👁️</button>
             </div>
           </div>
 
-          <button type="submit" id="login-btn" style="
-            width: 100%;
-            padding: 0.9rem;
-            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            font-family: 'Outfit', sans-serif;
-            letter-spacing: 0.01em;
-            box-shadow: 0 4px 20px rgba(59,130,246,0.35);
-            margin-top: 0.25rem;
-          ">
+          <button type="submit" id="login-btn" class="login-btn">
             Iniciar Sesión →
           </button>
         </form>
 
-        <!-- Credenciales de prueba -->
-        <div id="credenciales-caja" style="
-          display: none;
-          margin-top: 2rem;
-          padding-top: 1.5rem;
-          border-top: 1px solid rgba(255,255,255,0.07);
-          font-size: 0.82rem;
-          color: #8892AA;
-        ">
-          <p style="margin: 0 0 0.75rem 0; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;">
-            🔑 Credenciales de prueba
-          </p>
-          <div style="
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.07);
-            padding: 1rem;
-            border-radius: 10px;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-          ">
-            <div style="padding: 0.6rem; background: rgba(59,130,246,0.08); border-radius: 8px; border: 1px solid rgba(59,130,246,0.15);">
-              <div style="color: #3B82F6; font-weight: 700; margin-bottom: 0.3rem; font-size: 0.75rem;">ADMIN</div>
-              <div style="color: #8892AA; font-size: 0.75rem;">usuario: admin</div>
-              <div style="color: #8892AA; font-size: 0.75rem;">pass: admin123</div>
+        <!-- Credenciales de prueba — visible solo con Ctrl+Shift+Q -->
+        <div id="credenciales-caja" class="login-creds">
+          <p class="login-creds-title">Credenciales de prueba</p>
+          <div class="login-creds-grid">
+            <div class="login-creds-admin">
+              <div class="login-creds-role admin">ADMIN</div>
+              <span class="login-creds-line">usuario: admin</span>
+              <span class="login-creds-line">pass: admin123</span>
             </div>
-            <div style="padding: 0.6rem; background: rgba(16,185,129,0.08); border-radius: 8px; border: 1px solid rgba(16,185,129,0.15);">
-              <div style="color: #10B981; font-weight: 700; margin-bottom: 0.3rem; font-size: 0.75rem;">CAJERO</div>
-              <div style="color: #8892AA; font-size: 0.75rem;">usuario: cajero</div>
-              <div style="color: #8892AA; font-size: 0.75rem;">pass: cajero123</div>
+            <div class="login-creds-cajero">
+              <div class="login-creds-role cajero">CAJERO</div>
+              <span class="login-creds-line">usuario: cajero</span>
+              <span class="login-creds-line">pass: cajero123</span>
             </div>
           </div>
         </div>
+
       </div>
     </div>
-
-    <style>
-      @keyframes loginLogoGlow {
-        from { filter: drop-shadow(0 0 8px rgba(59,130,246,0.5)); }
-        to   { filter: drop-shadow(0 0 20px rgba(139,92,246,0.9)); }
-      }
-    </style>
   `;
 
-  // Focus glow en inputs
-  document.querySelectorAll("input").forEach(input => {
-    input.addEventListener("focus", function() {
-      this.style.borderColor = "rgba(59,130,246,0.7)";
-      this.style.boxShadow = "0 0 0 3px rgba(59,130,246,0.15)";
-      this.style.background = "rgba(59,130,246,0.08)";
-    });
-    input.addEventListener("blur", function() {
-      this.style.borderColor = "rgba(255,255,255,0.1)";
-      this.style.boxShadow = "none";
-      this.style.background = "rgba(255,255,255,0.05)";
-    });
-  });
 
-  // Hover en botón submit
-  const loginBtn = document.getElementById("login-btn");
-  if (loginBtn) {
-    loginBtn.addEventListener("mouseover", () => {
-      loginBtn.style.transform = "translateY(-2px)";
-      loginBtn.style.boxShadow = "0 8px 30px rgba(59,130,246,0.5)";
-    });
-    loginBtn.addEventListener("mouseout", () => {
-      loginBtn.style.transform = "translateY(0)";
-      loginBtn.style.boxShadow = "0 4px 20px rgba(59,130,246,0.35)";
-    });
-  }
-
-  // Atajo de teclado oculto: Ctrl + Shift + Q
-  document.addEventListener("keydown", function(e) {
+  // Atajo Ctrl+Shift+Q — muestra credenciales de prueba para sustentación
+  document.addEventListener("keydown", function handler(e) {
     if (e.ctrlKey && e.shiftKey && (e.key === "q" || e.key === "Q")) {
       const caja = document.getElementById("credenciales-caja");
-      if (caja) {
-        caja.style.display = caja.style.display === "none" ? "block" : "none";
-      }
+      if (caja) caja.style.display = caja.style.display === "none" ? "block" : "none";
     }
+    // Limpiar el listener cuando se desmonte la pantalla de login
+    if (!document.getElementById("login-form")) document.removeEventListener("keydown", handler);
   });
 
   // Toggle password visibility
@@ -278,24 +112,12 @@ function mostrarPantallaLogin() {
 }
 
 function mostrarError(mensaje) {
-  const card = document.getElementById("login-card");
   const existing = document.getElementById("login-error");
   if (existing) existing.remove();
 
   const errorDiv = document.createElement("div");
   errorDiv.id = "login-error";
-  errorDiv.style.cssText = `
-    background: rgba(239,68,68,0.12);
-    color: #EF4444;
-    border: 1px solid rgba(239,68,68,0.3);
-    padding: 0.75rem 1rem;
-    border-radius: 10px;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    text-align: center;
-    animation: shake 0.4s ease;
-    font-size: 0.875rem;
-  `;
+  errorDiv.className = "login-error";
   errorDiv.textContent = "❌ " + mensaje;
   const form = document.getElementById("login-form");
   form.insertBefore(errorDiv, form.firstChild);
@@ -582,7 +404,7 @@ function actualizarCartaPOS() {
 
   tbody.innerHTML = items.map(item => `
     <tr>
-      <td style="font-weight:600; color:var(--text-main);">${item.nombre} <button style="background:none; border:none; cursor:pointer; font-size:12px; margin-left:4px;" onclick="editarProductoEnCaliente('${item.productoId}')" title="Editar precio">✏️</button></td>
+      <td style="font-weight:600; color:var(--text-main);">${item.nombre} <button style="background:none; border:none; cursor:pointer; font-size:12px; margin-left:4px;" onclick="editarProductoPOS('${item.id}')" title="Editar precio">✏️</button></td>
       <td style="color:var(--text-muted);">$${item.precio.toFixed(2)}</td>
       <td><input type="number" value="${item.cantidad}" min="1"
         style="width:100%; max-width:55px; padding:0.35rem 0.2rem; border:1px solid var(--glass-border); border-radius:6px; background:var(--bg-input); color:var(--text-main); font-family:inherit; text-align:center;"
@@ -750,70 +572,96 @@ async function procesarPago() {
 }
 
 function mostrarComprobante(venta) {
-  const metodosLabel = { efectivo: "Efectivo", nequi: "Nequi", debe: "Debe (cuenta por cobrar)" };
+  const metodosLabel = {
+    efectivo: "Efectivo", nequi: "Nequi", tarjeta: "Tarjeta",
+    transferencia: "Transferencia", debe: "Debe (cuenta por cobrar)"
+  };
   const items = Array.isArray(venta.items) ? venta.items : [];
+  const fmt = n => parseFloat(n || 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-  let filasItems = items.map(function(item) {
-    return "<tr style='border-bottom:1px solid #eee;'>"
-      + "<td style='padding:4px 8px;'>" + item.nombre + "</td>"
-      + "<td style='padding:4px 8px; text-align:center;'>" + item.cantidad + "</td>"
-      + "<td style='padding:4px 8px; text-align:right;'>$" + parseFloat(item.precio).toFixed(2) + "</td>"
-      + "<td style='padding:4px 8px; text-align:right;'>$" + parseFloat(item.subtotal).toFixed(2) + "</td>"
-      + "</tr>";
-  }).join("");
+  const filasItems = items.map(item =>
+    `<tr>
+      <td style="padding:6px 8px; border-bottom:1px solid #e5e7eb;">${item.nombre}</td>
+      <td style="padding:6px 8px; text-align:center; border-bottom:1px solid #e5e7eb; color:#6b7280;">${item.cantidad}</td>
+      <td style="padding:6px 8px; text-align:right; border-bottom:1px solid #e5e7eb; color:#6b7280;">$${fmt(item.precio)}</td>
+      <td style="padding:6px 8px; text-align:right; border-bottom:1px solid #e5e7eb; font-weight:600;">$${fmt(item.subtotal)}</td>
+    </tr>`
+  ).join("");
+
+  const baseImponible = parseFloat(venta.subtotal || 0) - parseFloat(venta.descuento || 0);
+  const basesinIVA = baseImponible / 1.19;
+  const ivaReal = baseImponible - basesinIVA;
 
   const descuentoHtml = venta.descuento > 0
-    ? "<tr><td colspan='3' style='text-align:right; padding:4px 8px;'>Descuento:</td><td style='text-align:right; padding:4px 8px; color:#DC2626;'>-$" + parseFloat(venta.descuento).toFixed(2) + "</td></tr>"
+    ? `<tr><td colspan="3" style="text-align:right; padding:4px 8px; color:#6b7280;">Descuento:</td><td style="text-align:right; padding:4px 8px; color:#dc2626; font-weight:600;">-$${fmt(venta.descuento)}</td></tr>`
     : "";
 
   const cambioHtml = venta.metodoPago === "efectivo" && venta.cambio > 0
-    ? "<p style='margin:0.25rem 0;'><strong>Cambio:</strong> $" + parseFloat(venta.cambio).toFixed(2) + "</p>"
+    ? `<div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#6b7280;">Cambio entregado:</span><span style="font-weight:600; color:#059669;">$${fmt(venta.cambio)}</span></div>`
     : "";
 
   const modalContent = document.getElementById("modal-content");
   modalContent.innerHTML = `
-    <div style="font-family: monospace; max-width: 400px; margin: 0 auto;">
-      <div style="text-align:center; border-bottom:2px solid #333; padding-bottom:1rem; margin-bottom:1rem;">
-        <h2 style="margin:0; font-size:1.4rem;">🌙 Papel & Luna</h2>
-        <p style="margin:0.25rem 0; font-size:0.85rem; color:#666;">NIT: 900.123.456-7</p>
-        <p style="margin:0.25rem 0; font-size:0.85rem; color:#666;">Cali, Colombia | Tel: (300) 123-4567</p>
-        <p style="margin:0.5rem 0; font-size:0.85rem;"><strong>COMPROBANTE DE VENTA</strong></p>
-        <p style="margin:0; font-size:0.8rem; color:#666;">ID: ${venta.id} | ${venta.fecha}</p>
+    <div id="factura-print-area" style="font-family:'Inter',system-ui,sans-serif; max-width:440px; margin:0 auto; background:#fff; color:#111827; padding:0;">
+
+      <!-- Encabezado -->
+      <div style="background:linear-gradient(135deg,#3D6B9E,#2a5080); color:#fff; padding:1.5rem; border-radius:10px 10px 0 0; text-align:center;">
+        <div style="font-size:2rem; margin-bottom:0.25rem;">🌙</div>
+        <h2 style="margin:0; font-size:1.4rem; font-weight:700; letter-spacing:0.05em;">PAPEL & LUNA</h2>
+        <p style="margin:0.25rem 0 0; font-size:0.8rem; opacity:0.85;">NIT: 900.123.456-7 · Cali, Colombia</p>
       </div>
 
-      <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
-        <thead>
-          <tr style="border-bottom:1px solid #333;">
-            <th style="text-align:left; padding:4px 8px;">Producto</th>
-            <th style="text-align:center; padding:4px 8px;">Cant.</th>
-            <th style="text-align:right; padding:4px 8px;">Precio</th>
-            <th style="text-align:right; padding:4px 8px;">Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>${filasItems}</tbody>
-        <tfoot style="border-top:1px solid #333;">
-          <tr><td colspan="3" style="text-align:right; padding:4px 8px;">Subtotal:</td><td style="text-align:right; padding:4px 8px;">$${parseFloat(venta.subtotal).toFixed(2)}</td></tr>
-          ${descuentoHtml}
-          <tr><td colspan="3" style="text-align:right; padding:4px 8px;">IVA (19%):</td><td style="text-align:right; padding:4px 8px;">$${parseFloat(venta.impuesto).toFixed(2)}</td></tr>
-          <tr style="font-weight:bold; border-top:2px solid #333;">
-            <td colspan="3" style="text-align:right; padding:6px 8px;">TOTAL:</td>
-            <td style="text-align:right; padding:6px 8px; color:#059669;">$${parseFloat(venta.total).toFixed(2)}</td>
-          </tr>
-        </tfoot>
-      </table>
+      <!-- Info comprobante -->
+      <div style="background:#f9fafb; padding:0.85rem 1.25rem; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; font-size:0.82rem; color:#374151;">
+        <div><span style="color:#6b7280;">Comprobante</span><br><strong style="font-family:monospace;">#${venta.numero || venta.id?.slice(-8).toUpperCase()}</strong></div>
+        <div style="text-align:right;"><span style="color:#6b7280;">Fecha</span><br><strong>${venta.fecha || new Date().toLocaleDateString("es-CO")}</strong></div>
+      </div>
 
-      <div style="border-top:1px solid #ddd; margin-top:1rem; padding-top:0.75rem; font-size:0.85rem;">
-        <p style="margin:0.25rem 0;"><strong>Método de pago:</strong> ${metodosLabel[venta.metodoPago] || venta.metodoPago}</p>
+      <!-- Tabla de items -->
+      <div style="padding:0 1.25rem;">
+        <table style="width:100%; font-size:0.87rem; border-collapse:collapse; margin-top:1rem;">
+          <thead>
+            <tr style="border-bottom:2px solid #e5e7eb;">
+              <th style="text-align:left; padding:6px 8px; color:#6b7280; font-weight:600; font-size:0.78rem; text-transform:uppercase;">Descripción</th>
+              <th style="text-align:center; padding:6px 8px; color:#6b7280; font-weight:600; font-size:0.78rem; text-transform:uppercase;">Cant.</th>
+              <th style="text-align:right; padding:6px 8px; color:#6b7280; font-weight:600; font-size:0.78rem; text-transform:uppercase;">P.Unit.</th>
+              <th style="text-align:right; padding:6px 8px; color:#6b7280; font-weight:600; font-size:0.78rem; text-transform:uppercase;">Total</th>
+            </tr>
+          </thead>
+          <tbody>${filasItems}</tbody>
+          <tfoot>
+            <tr><td colspan="3" style="text-align:right; padding:6px 8px; color:#6b7280;">Subtotal:</td><td style="text-align:right; padding:6px 8px;">$${fmt(venta.subtotal)}</td></tr>
+            ${descuentoHtml}
+            <tr><td colspan="3" style="text-align:right; padding:4px 8px; color:#6b7280;">Base (sin IVA):</td><td style="text-align:right; padding:4px 8px; color:#6b7280;">$${fmt(basesinIVA)}</td></tr>
+            <tr><td colspan="3" style="text-align:right; padding:4px 8px; color:#6b7280;">IVA (19%):</td><td style="text-align:right; padding:4px 8px; color:#6b7280;">$${fmt(ivaReal)}</td></tr>
+            <tr style="border-top:2px solid #111827;">
+              <td colspan="3" style="text-align:right; padding:8px 8px; font-weight:700; font-size:1rem;">TOTAL:</td>
+              <td style="text-align:right; padding:8px 8px; font-weight:800; font-size:1.1rem; color:#059669;">$${fmt(venta.total)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Pago -->
+      <div style="margin:1rem 1.25rem; padding:0.85rem 1rem; background:#f9fafb; border-radius:8px; border:1px solid #e5e7eb; font-size:0.87rem;">
+        <div style="display:flex; justify-content:space-between; padding:3px 0;">
+          <span style="color:#6b7280;">Método de pago:</span>
+          <span style="font-weight:600;">${metodosLabel[venta.metodoPago] || venta.metodoPago || "—"}</span>
+        </div>
         ${cambioHtml}
       </div>
 
-      <div style="text-align:center; border-top:1px solid #ddd; margin-top:1rem; padding-top:0.75rem; font-size:0.8rem; color:#888;">
-        <p style="margin:0;">¡Gracias por su compra!</p>
+      <!-- Pie -->
+      <div style="text-align:center; padding:1rem; border-top:1px dashed #d1d5db; color:#9ca3af; font-size:0.78rem;">
+        <p style="margin:0 0 0.25rem; font-weight:600; color:#6b7280;">¡Gracias por su compra!</p>
+        <p style="margin:0;">Este documento es un comprobante de transacción comercial.</p>
       </div>
 
-      <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
-        <button class="btn btn-primary" style="flex:1;" onclick="closeModal(); startSale(); navigateTo('pos');">🛒 Nueva Venta</button>
-        <button class="btn btn-secondary" onclick="closeModal(); navigateTo('history');">📊 Ver Historial</button>
+      <!-- Botones (no imprimen) -->
+      <div class="no-print" style="display:flex; gap:0.75rem; padding:1rem 1.25rem 0;">
+        <button class="btn btn-primary" style="flex:1;" onclick="window.print()">🖨️ Imprimir / PDF</button>
+        <button class="btn btn-secondary" onclick="closeModal(); startSale(); navigateTo('pos');">🛒 Nueva Venta</button>
+        <button class="btn btn-secondary" onclick="closeModal(); navigateTo('history');">📊 Historial</button>
       </div>
     </div>`;
   openModal();
@@ -822,7 +670,7 @@ function mostrarComprobante(venta) {
 function renderProductList() {
   const view = document.getElementById("view-products");
   const products = getAllProducts();
-  view.innerHTML = `<div class="container"><div class="section-header"><h2>Gestión de Productos</h2><button class="btn btn-primary" onclick="mostrarFormularioProducto()">+ Nuevo Producto</button></div><div class="table-container"><table class="data-table"><thead><tr><th>Código</th><th>Nombre</th><th>Precio</th><th>Costo</th><th>Stock</th><th>Acción</th></tr></thead><tbody>${products.map((p, idx) => `<tr><td><strong>${String(idx + 1).padStart(4, '0')}</strong></td><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td>$${p.costo.toFixed(2)}</td><td><span class="badge badge-success">${p.stock}</span></td><td><button class="btn btn-small product-edit" data-id="${p.id}" style="border: 1px solid var(--border);">✏️ Editar</button><button class="btn btn-small btn-danger product-delete" data-id="${p.id}">🗑️ Eliminar</button></td></tr>`).join("")}</tbody></table></div></div>`;
+  view.innerHTML = `<div class="container"><div class="section-header"><h2>Gestión de Productos</h2><button class="btn btn-primary" onclick="mostrarFormularioProducto()">+ Nuevo Producto</button></div><div class="table-container"><table class="data-table"><thead><tr><th>Código</th><th>Nombre</th><th>Precio</th><th>Costo</th><th>Stock</th><th>Acción</th></tr></thead><tbody>${products.map((p, idx) => `<tr><td><strong>${String(idx + 1).padStart(4, '0')}</strong></td><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td>$${p.costo.toFixed(2)}</td><td><span class="badge badge-success">${p.stock}</span></td><td><button class="btn btn-small btn-secondary product-edit" data-id="${p.id}">✏️ Editar</button> <button class="btn btn-small btn-danger product-delete" data-id="${p.id}">🗑️ Eliminar</button></td></tr>`).join("")}</tbody></table></div></div>`;
   
   // Event listeners para editar y eliminar
   document.querySelectorAll('.product-edit').forEach(btn => {
@@ -867,7 +715,7 @@ function mostrarFormularioProducto(productId = null) {
 function renderCategoriasList() {
   const view = document.getElementById("view-categorias");
   const categorias = state.categorias;
-  view.innerHTML = `<div class="container"><div class="section-header"><h2>Categorías</h2><button class="btn btn-primary" onclick="mostrarFormularioCategoria()">+ Nueva Categoría</button></div><div class="cards-grid">${categorias.map(c => `<div class="card"><h4>${c.nombre}</h4><p>${c.descripcion || ""}</p><div class="card-actions"><button class="btn-small categoria-edit" data-id="${c.id}" style="border: 1px solid var(--border);">✏️ Editar</button><button class="btn-small btn-danger categoria-delete" data-id="${c.id}">🗑️ Eliminar</button></div></div>`).join("")}</div></div>`;
+  view.innerHTML = `<div class="container"><div class="section-header"><h2>Categorías</h2><button class="btn btn-primary" onclick="mostrarFormularioCategoria()">+ Nueva Categoría</button></div><div class="cards-grid">${categorias.map(c => `<div class="card"><h4>${c.nombre}</h4><p>${c.descripcion || ""}</p><div class="card-actions"><button class="btn btn-small btn-secondary categoria-edit" data-id="${c.id}">✏️ Editar</button><button class="btn btn-small btn-danger categoria-delete" data-id="${c.id}">🗑️ Eliminar</button></div></div>`).join("")}</div></div>`;
   
   // Event listeners para editar y eliminar
   document.querySelectorAll('.categoria-edit').forEach(btn => {
@@ -1049,67 +897,124 @@ function mostrarFactura(id) {
   const venta = ventas.find(v => v.id === id);
   if (!venta) return showToast("Venta no encontrada", "error");
 
+  const metodosLabel = {
+    efectivo: "Efectivo", nequi: "Nequi", tarjeta: "Tarjeta",
+    transferencia: "Transferencia", debe: "Debe (cuenta por cobrar)"
+  };
+  const fmt = n => parseFloat(n || 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const estadoBadge = { cerrada: "badge-success", anulada: "badge-danger", pendiente: "badge-warning" };
+
+  const baseImponible = parseFloat(venta.subtotal || 0) - parseFloat(venta.descuento || 0);
+  const basesinIVA = baseImponible / 1.19;
+  const ivaReal = baseImponible - basesinIVA;
+
   const modalContent = document.getElementById("modal-content");
-  
-  let html = `
-    <div id="factura-print-area" style="padding: 1.5rem; background: #fff; color: #000; font-family: monospace;">
-      <h2 style="text-align: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #000; padding-bottom: 0.5rem; color: #000;">Ticket de Venta</h2>
-      <p style="text-align: center; margin-bottom: 0.5rem; font-size: 0.95rem; color: #000;"><strong>PAPEL & LUNA</strong><br>NIT: 901.234.567-8</p>
-      <p style="text-align: center; margin-bottom: 1.5rem; font-size: 0.95rem; color: #000;">ID: ${venta.id}<br>Fecha: ${venta.fecha}</p>
-      
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.95rem; color: #000;">
-        <thead style="color: #000;">
-          <tr style="border-bottom: 1px dashed #000;">
-            <th style="text-align: left; padding: 0.3rem 0; color: #000;">Descripción</th>
-            <th style="text-align: right; padding: 0.3rem 0; color: #000;">Cant</th>
-            <th style="text-align: right; padding: 0.3rem 0; color: #000;">SubT</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${(venta.items || []).map(item => `
-            <tr>
-              <td style="text-align: left; padding: 0.3rem 0; color: #000;">${item.nombre}</td>
-              <td style="text-align: right; padding: 0.3rem 0; color: #000;">${item.cantidad}</td>
-              <td style="text-align: right; padding: 0.3rem 0; color: #000;">$${parseFloat(item.subtotal || (item.precio * item.cantidad)).toFixed(2)}</td>
+  const html = `
+    <div id="factura-print-area" style="font-family:'Inter',system-ui,sans-serif; max-width:520px; margin:0 auto; background:#fff; color:#111827;">
+
+      <!-- Encabezado empresa -->
+      <div style="background:linear-gradient(135deg,#3D6B9E,#2a5080); color:#fff; padding:1.5rem 2rem; border-radius:10px 10px 0 0; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:1.6rem; font-weight:800; letter-spacing:0.02em;">🌙 Papel &amp; Luna</div>
+          <div style="font-size:0.8rem; opacity:0.85; margin-top:0.2rem;">NIT: 900.123.456-7 · Cali, Colombia</div>
+          <div style="font-size:0.8rem; opacity:0.8;">Tel: (300) 123-4567</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.75rem; opacity:0.8; text-transform:uppercase; letter-spacing:0.08em;">Factura</div>
+          <div style="font-size:1.1rem; font-weight:700; font-family:monospace;">#${venta.numero || venta.id?.slice(-8).toUpperCase()}</div>
+          <span class="badge ${estadoBadge[venta.estado] || 'badge-info'}" style="margin-top:0.25rem;">${(venta.estado || "cerrada").toUpperCase()}</span>
+        </div>
+      </div>
+
+      <!-- Metadatos -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1px solid #e5e7eb;">
+        <div style="padding:0.85rem 1.5rem; border-right:1px solid #e5e7eb;">
+          <div style="font-size:0.72rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.25rem;">Fecha de emisión</div>
+          <div style="font-weight:600; font-size:0.9rem;">${venta.fecha || "—"}</div>
+        </div>
+        <div style="padding:0.85rem 1.5rem;">
+          <div style="font-size:0.72rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.25rem;">Método de pago</div>
+          <div style="font-weight:600; font-size:0.9rem;">${metodosLabel[venta.metodoPago] || venta.metodoPago || "—"}</div>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div style="padding:1rem 1.5rem;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.87rem;">
+          <thead>
+            <tr style="border-bottom:2px solid #e5e7eb;">
+              <th style="text-align:left; padding:6px 4px; color:#6b7280; font-size:0.75rem; text-transform:uppercase; font-weight:600;">Descripción</th>
+              <th style="text-align:center; padding:6px 4px; color:#6b7280; font-size:0.75rem; text-transform:uppercase; font-weight:600;">Cant.</th>
+              <th style="text-align:right; padding:6px 4px; color:#6b7280; font-size:0.75rem; text-transform:uppercase; font-weight:600;">P.Unit.</th>
+              <th style="text-align:right; padding:6px 4px; color:#6b7280; font-size:0.75rem; text-transform:uppercase; font-weight:600;">Subtotal</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-      
-      <div style="border-top: 1px dashed #000; padding-top: 0.5rem; text-align: right; font-size: 0.95rem; color: #000;">
-        <p style="color: #000;"><strong>Subtotal:</strong> $${parseFloat(venta.subtotal).toFixed(2)}</p>
-        <p style="color: #000;"><strong>Impuesto:</strong> $${parseFloat(venta.impuesto).toFixed(2)}</p>
-        <p style="font-size: 1.2em; margin-top: 0.5rem; color: #000;"><strong>Total:</strong> $${parseFloat(venta.total).toFixed(2)}</p>
+          </thead>
+          <tbody>
+            ${(venta.items || []).map(item => `
+              <tr style="border-bottom:1px solid #f3f4f6;">
+                <td style="padding:8px 4px; font-weight:500;">${item.nombre}</td>
+                <td style="padding:8px 4px; text-align:center; color:#6b7280;">${item.cantidad}</td>
+                <td style="padding:8px 4px; text-align:right; color:#6b7280;">$${fmt(item.precio)}</td>
+                <td style="padding:8px 4px; text-align:right; font-weight:600;">$${fmt(item.subtotal || (item.precio * item.cantidad))}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
       </div>
-        <p style="color: #000;"><strong>Método:</strong> ${venta.metodoPago || '-'}</p>
-        <p style="color: #000;"><strong>Cambio entregado:</strong> $${parseFloat(venta.cambio || 0).toFixed(2)}</p>
+
+      <!-- Totales -->
+      <div style="margin:0 1.5rem 1rem; padding:1rem; background:#f9fafb; border-radius:8px; border:1px solid #e5e7eb;">
+        <div style="display:flex; justify-content:space-between; padding:3px 0; font-size:0.87rem;">
+          <span style="color:#6b7280;">Subtotal bruto:</span><span>$${fmt(venta.subtotal)}</span>
+        </div>
+        ${venta.descuento > 0 ? `<div style="display:flex; justify-content:space-between; padding:3px 0; font-size:0.87rem;">
+          <span style="color:#6b7280;">Descuento:</span><span style="color:#dc2626; font-weight:600;">-$${fmt(venta.descuento)}</span>
+        </div>` : ""}
+        <div style="display:flex; justify-content:space-between; padding:3px 0; font-size:0.87rem;">
+          <span style="color:#6b7280;">Base gravable (sin IVA):</span><span style="color:#6b7280;">$${fmt(basesinIVA)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:3px 0; font-size:0.87rem;">
+          <span style="color:#6b7280;">IVA (19%):</span><span style="color:#6b7280;">$${fmt(ivaReal)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0 3px; border-top:2px solid #d1d5db; margin-top:6px; font-size:1rem; font-weight:800;">
+          <span>TOTAL:</span><span style="color:#059669;">$${fmt(venta.total)}</span>
+        </div>
+        ${venta.metodoPago === "efectivo" && venta.cambio > 0 ? `
+        <div style="display:flex; justify-content:space-between; padding:3px 0; font-size:0.87rem; margin-top:4px;">
+          <span style="color:#6b7280;">Cambio entregado:</span><span style="color:#059669; font-weight:600;">$${fmt(venta.cambio)}</span>
+        </div>` : ""}
       </div>
+
       ${venta.historialCorrecciones && venta.historialCorrecciones.length > 0 ? `
-      <div style="margin-top: 1rem; padding: 0.5rem; background: #fff1f2; border: 1px dashed #e11d48; font-size: 0.85rem; color: #e11d48; text-align: left;">
-        <strong>Historial de Correcciones:</strong>
-        <ul style="margin: 0.5rem 0 0 0; padding-left: 1.2rem;">
-          ${venta.historialCorrecciones.map(c => `<li>${c.fecha} - ${c.usuario}: ${c.motivo}</li>`).join('')}
+      <div style="margin:0 1.5rem 1rem; padding:0.75rem 1rem; background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; font-size:0.82rem; color:#92400e;">
+        <strong style="display:block; margin-bottom:0.5rem;">⚠️ Historial de Correcciones</strong>
+        <ul style="margin:0; padding-left:1.2rem;">
+          ${venta.historialCorrecciones.map(c => `<li>${c.fecha} — ${c.usuario}: ${c.motivo}</li>`).join("")}
         </ul>
+      </div>` : ""}
+
+      <!-- Pie de factura -->
+      <div style="text-align:center; padding:1rem 1.5rem; border-top:1px dashed #d1d5db; color:#9ca3af; font-size:0.78rem;">
+        <p style="margin:0 0 0.2rem; font-weight:600; color:#6b7280;">¡Gracias por su compra!</p>
+        <p style="margin:0;">Este documento es un comprobante de transacción comercial.</p>
       </div>
-      ` : ''}
-      <p style="text-align: center; margin-top: 2rem; font-size: 0.85rem; padding-top: 1rem; border-top: 1px dashed #000; color: #000;">¡Gracias por su compra!</p>
-    </div>
-    
-    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: space-between; align-items: center;" class="no-print">
-      <div style="display: flex; gap: 0.5rem;">
-        ${state.rolActual === 'admin' ? `
-        <button class="btn btn-small" style="background:var(--warning);" onclick="corregirVenta('${venta.id}')">🧰 Corregir</button>
-        <button class="btn btn-small" style="background:var(--info);" onclick="reembolsarVenta('${venta.id}')">🔄 Reembolso</button>
-        <button class="btn btn-small btn-danger" onclick="anularVenta('${venta.id}')">🗑️ Anular</button>
-        ` : ''}
+
+      <!-- Acciones -->
+      <div class="no-print" style="padding:1rem 1.5rem; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+        <div style="display:flex; gap:0.5rem;">
+          ${state.rolActual === "admin" ? `
+          <button class="btn btn-small" style="background:var(--clr-warning); color:#fff;" onclick="corregirVenta('${venta.id}')">🧰 Corregir</button>
+          <button class="btn btn-small" style="background:var(--clr-info); color:#fff;" onclick="reembolsarVenta('${venta.id}')">🔄 Reembolso</button>
+          <button class="btn btn-small btn-danger" onclick="anularVenta('${venta.id}')">🗑 Anular</button>
+          ` : ""}
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / PDF</button>
+          <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+        </div>
       </div>
-      <div style="display: flex; gap: 0.5rem;">
-        <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / Descargar PDF</button>
-        <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
-      </div>
-    </div>
-  `;
-  
+    </div>`;
+
   modalContent.innerHTML = html;
   openModal();
 }
@@ -1465,32 +1370,109 @@ function renderCompras() {
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>N°</th>
                   <th>Fecha</th>
                   <th>Proveedor</th>
                   <th>Método Pago</th>
                   <th>Items</th>
                   <th>Total</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                ${compras.map(c => {
+                ${compras.map((c, idx) => {
                   const prov = state.proveedores.find(p => p.id === c.proveedorId);
                   let items = [];
                   try { items = typeof c.itemsJson === 'string' ? JSON.parse(c.itemsJson) : (c.itemsJson || []); } catch(e) {}
                   return `<tr>
-                    <td><span class="badge badge-info" style="font-family:'JetBrains Mono',monospace;">${c.id}</span></td>
+                    <td><span class="badge badge-info" style="font-family:'JetBrains Mono',monospace;">${c.numero || String(idx+1).padStart(4,'0')}</span></td>
                     <td>${c.fecha || '—'}</td>
                     <td><strong>${prov ? prov.nombre : (c.proveedorId || '—')}</strong></td>
                     <td><span class="badge badge-warning">${c.metodoPago || '—'}</span></td>
-                    <td>${items.length} items</td>
-                    <td><strong style="color:var(--neon-green,#10B981);">$${parseFloat(c.total||0).toFixed(2)}</strong></td>
+                    <td>${items.length} item${items.length !== 1 ? 's' : ''}</td>
+                    <td><strong style="color:var(--clr-success);">$${parseFloat(c.total||0).toLocaleString('es-CO')}</strong></td>
+                    <td>
+                      <button class="btn btn-small btn-secondary" onclick="verDetalleCompra('${c.id}')">👁 Ver</button>
+                      ${state.rolActual === 'admin' ? `<button class="btn btn-small btn-danger" onclick="eliminarCompra('${c.id}')">🗑</button>` : ''}
+                    </td>
                   </tr>`;
                 }).join('')}
               </tbody>
             </table>
           </div>`}
     </div>`;
+}
+
+function verDetalleCompra(id) {
+  const compra = state.compras.find(c => c.id === id);
+  if (!compra) return showToast("Compra no encontrada", "error");
+  const prov = state.proveedores.find(p => p.id === compra.proveedorId);
+  let items = [];
+  try { items = typeof compra.itemsJson === "string" ? JSON.parse(compra.itemsJson) : (compra.itemsJson || []); } catch(e) {}
+
+  const modalContent = document.getElementById("modal-content");
+  modalContent.innerHTML = `
+    <div style="max-width:520px; margin:0 auto;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h3 style="margin:0 0 0.25rem; font-size:1.2rem;">Detalle de Compra</h3>
+          <span class="badge badge-info" style="font-family:'JetBrains Mono',monospace;">${compra.numero || compra.id}</span>
+        </div>
+        <div style="text-align:right; color:var(--text-muted); font-size:0.85rem;">
+          <div>${compra.fecha || "—"}</div>
+          <span class="badge badge-warning">${compra.metodoPago || "—"}</span>
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-bottom:1rem; padding-bottom:1rem; border-bottom:1px solid var(--border);">
+        <strong>Proveedor:</strong> ${prov ? prov.nombre : (compra.proveedorId || "—")}
+      </div>
+
+      <table class="data-table" style="margin-bottom:1rem;">
+        <thead><tr><th>Producto</th><th>Cant.</th><th>Costo unit.</th><th>Subtotal</th></tr></thead>
+        <tbody>
+          ${items.map(item => {
+            const prod = state.productos.find(p => p.id === (item.id || item.productId));
+            return `<tr>
+              <td>${prod ? prod.nombre : (item.id || item.productId || "—")}</td>
+              <td style="text-align:center;">${item.cantidad || item.quantity || 0}</td>
+              <td>$${parseFloat(item.costo || item.unitCost || 0).toLocaleString("es-CO")}</td>
+              <td><strong>$${parseFloat(item.subtotal || 0).toLocaleString("es-CO")}</strong></td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+
+      <div style="text-align:right; font-size:1.1rem; font-weight:700; color:var(--clr-success);">
+        TOTAL: $${parseFloat(compra.total || 0).toLocaleString("es-CO")}
+      </div>
+
+      <div style="margin-top:1.5rem; display:flex; gap:0.75rem; justify-content:flex-end;">
+        ${state.rolActual === "admin" ? `<button class="btn btn-danger" onclick="closeModal(); eliminarCompra('${compra.id}')">🗑 Eliminar</button>` : ""}
+        <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+      </div>
+    </div>`;
+  openModal();
+}
+
+async function eliminarCompra(id) {
+  const confirmed = await customConfirm("¿Eliminar esta compra? Esta acción no se puede deshacer.");
+  if (!confirmed) return;
+
+  try {
+    await apiRequest(`/purchases/${id}`, { method: "DELETE" });
+    state.compras = state.compras.filter(c => c.id !== id);
+    showToast("Compra eliminada", "success");
+    renderCompras();
+  } catch (error) {
+    if (error.status === 404 || localStorage.getItem("modoLocal") === "true") {
+      state.compras = state.compras.filter(c => c.id !== id);
+      showToast("Compra eliminada localmente", "warning");
+      renderCompras();
+    } else {
+      showToast(error.message || "Error eliminando compra", "error");
+    }
+  }
 }
 
 function aplicarFiltroCompras() {
@@ -1843,63 +1825,101 @@ function renderReports() {
     console.error("View reports no encontrada");
     return;
   }
-  
+
+  // KPIs rápidos desde el estado actual
+  const ventasHoy = state.ventas.filter(v => {
+    const hoy = new Date().toLocaleDateString("es-CO");
+    return v.fecha && String(v.fecha).startsWith(hoy.split("/")[2]) && v.estado !== "anulada";
+  });
+  const totalHoy = ventasHoy.reduce((s, v) => s + parseFloat(v.total || 0), 0);
+  const ventasTotal = state.ventas.filter(v => v.estado !== "anulada").length;
+  const productosBajoStock = state.productos.filter(p => p.seguimientoInventario !== false && p.stock < 10).length;
+  const productosAgotados = state.productos.filter(p => p.stock === 0).length;
+  const fmt = n => parseFloat(n || 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
   view.innerHTML = `<div class="container">
     <div class="section-header">
-      <h2>📊 Reportes</h2>
+      <h2>📊 Reportes y Estadísticas</h2>
     </div>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
-      <div class="card" style="border-left: 5px solid var(--primary);">
-        <h3 style="color: var(--primary); margin-top: 0;">📈 Reporte de Ventas</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Análisis detallado de ventas por período</p>
-        <button class="btn btn-primary" style="width: 100%;" onclick="mostrarFormularioReportVentas()">Generar Reporte</button>
+
+    <!-- KPIs de resumen -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:2rem;">
+      <div class="card" style="padding:1.25rem; border-left:4px solid var(--clr-primary); background:var(--bg-panel);">
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">Ventas hoy</div>
+        <div style="font-size:1.6rem; font-weight:800; color:var(--clr-primary);">$${fmt(totalHoy)}</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">${ventasHoy.length} transacciones</div>
       </div>
-      
-      <div class="card" style="border-left: 5px solid var(--success);">
-        <h3 style="color: var(--success); margin-top: 0;">📦 Reporte de Inventario</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Estado actual del inventario y productos con bajo stock</p>
-        <button class="btn btn-success" style="width: 100%;" onclick="generarYMostrarReporteInventario()">Generar Reporte</button>
+      <div class="card" style="padding:1.25rem; border-left:4px solid var(--clr-success); background:var(--bg-panel);">
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">Ventas totales</div>
+        <div style="font-size:1.6rem; font-weight:800; color:var(--clr-success);">${ventasTotal}</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">${state.ventas.filter(v => v.estado === "anulada").length} anuladas</div>
       </div>
-      
-      <div class="card" style="border-left: 5px solid var(--info);">
-        <h3 style="color: var(--info); margin-top: 0;">👥 Reporte de Clientes</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Información sobre clientes activos e inactivos</p>
-        <button class="btn btn-info" style="width: 100%;" onclick="generarYMostrarReporteClientes()">Generar Reporte</button>
+      <div class="card" style="padding:1.25rem; border-left:4px solid var(--clr-warning); background:var(--bg-panel);">
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">Stock bajo</div>
+        <div style="font-size:1.6rem; font-weight:800; color:var(--clr-warning);">${productosBajoStock}</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">${productosAgotados} agotados</div>
       </div>
-      
-      <div class="card" style="border-left: 5px solid var(--warning);">
-        <h3 style="color: var(--warning); margin-top: 0;">🛒 Reporte de Compras</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Análisis de compras a proveedores</p>
-        <button class="btn btn-warning" style="width: 100%; color: white;" onclick="mostrarFormularioReportCompras()">Generar Reporte</button>
+      <div class="card" style="padding:1.25rem; border-left:4px solid var(--clr-info); background:var(--bg-panel);">
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">Clientes</div>
+        <div style="font-size:1.6rem; font-weight:800; color:var(--clr-info);">${state.clientes.filter(c => c.activo !== false).length}</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">${state.clientes.length} en total</div>
       </div>
     </div>
-    
+
+    <!-- Generadores de reportes -->
+    <h3 style="font-size:1rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Generar reporte</h3>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-bottom:2.5rem;">
+      <div class="card" style="padding:1.25rem; border-top:3px solid var(--clr-primary);">
+        <div style="font-size:1.5rem; margin-bottom:0.5rem;">📈</div>
+        <h4 style="margin:0 0 0.4rem; font-size:1rem; color:var(--text-main);">Ventas por período</h4>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin:0 0 1rem;">Ingresos, IVA y descuentos en un rango de fechas.</p>
+        <button class="btn btn-primary" style="width:100%;" onclick="mostrarFormularioReportVentas()">Generar</button>
+      </div>
+      <div class="card" style="padding:1.25rem; border-top:3px solid var(--clr-success);">
+        <div style="font-size:1.5rem; margin-bottom:0.5rem;">📦</div>
+        <h4 style="margin:0 0 0.4rem; font-size:1rem; color:var(--text-main);">Estado del inventario</h4>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin:0 0 1rem;">Valor, costo y margen por producto.</p>
+        <button class="btn btn-success" style="width:100%;" onclick="generarYMostrarReporteInventario()">Generar</button>
+      </div>
+      <div class="card" style="padding:1.25rem; border-top:3px solid var(--clr-info);">
+        <div style="font-size:1.5rem; margin-bottom:0.5rem;">👥</div>
+        <h4 style="margin:0 0 0.4rem; font-size:1rem; color:var(--text-main);">Clientes</h4>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin:0 0 1rem;">Clientes activos e inactivos registrados.</p>
+        <button class="btn btn-info" style="width:100%;" onclick="generarYMostrarReporteClientes()">Generar</button>
+      </div>
+      <div class="card" style="padding:1.25rem; border-top:3px solid var(--clr-warning);">
+        <div style="font-size:1.5rem; margin-bottom:0.5rem;">🛒</div>
+        <h4 style="margin:0 0 0.4rem; font-size:1rem; color:var(--text-main);">Compras a proveedores</h4>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin:0 0 1rem;">Historial de compras en un rango de fechas.</p>
+        <button class="btn btn-warning" style="width:100%; color:#fff;" onclick="mostrarFormularioReportCompras()">Generar</button>
+      </div>
+    </div>
+
+    <!-- Historial de reportes generados -->
+    ${state.reportes.length > 0 ? `
+    <h3 style="font-size:1rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin:0 0 1rem;">Reportes recientes</h3>
     <div class="table-container">
-      <h3>Reportes Generados</h3>
       <table class="data-table">
         <thead>
           <tr>
             <th>Tipo</th>
-            <th>Período/Fecha</th>
-            <th>Fecha Generación</th>
-            <th>Acción</th>
+            <th>Período</th>
+            <th>Generado</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          ${state.reportes.length === 0 ? 
-            '<tr><td colspan="4" style="text-align: center; padding: 2rem;">No hay reportes generados</td></tr>' : 
-            state.reportes.map(r => `
-              <tr>
-                <td><strong>${r.tipo}</strong></td>
-                <td>${r.periodo || r.fecha}</td>
-                <td>${r.fecha}</td>
-                <td><button class="btn-small btn-primary" onclick="mostrarDetallesReporte('${JSON.stringify(r).replace(/"/g, '&quot;')}')">Ver Detalles</button></td>
-              </tr>
-            `).join('')}
+          ${state.reportes.slice().reverse().map(r => `
+            <tr>
+              <td><strong>${r.tipo}</strong></td>
+              <td>${r.periodo || "—"}</td>
+              <td style="color:var(--text-muted); font-size:0.85rem;">${r.fecha}</td>
+              <td><button class="btn btn-small btn-primary" onclick="mostrarDetallesReporte('${JSON.stringify(r).replace(/"/g, "&quot;")}')">Ver detalles</button></td>
+            </tr>
+          `).join("")}
         </tbody>
       </table>
-    </div>
+    </div>` : ""}
   </div>`;
 }
 
@@ -1985,117 +2005,102 @@ function generarYMostrarReporteClientes() {
 
 function mostrarDetallesReporte(reporteStr) {
   try {
-    const reporte = typeof reporteStr === 'string' ? JSON.parse(reporteStr) : reporteStr;
+    const reporte = typeof reporteStr === "string" ? JSON.parse(reporteStr) : reporteStr;
     const modalContent = document.getElementById("modal-content");
-    
-    let html = `<h3>${reporte.tipo}</h3>`;
-    
-    if (reporte.periodo) html += `<p><strong>Período:</strong> ${reporte.periodo}</p>`;
-    html += `<p><strong>Fecha de Generación:</strong> ${reporte.fecha}</p>`;
-    
-    const dicc = {
-      totalVentas: "Total de Ventas",
-      totalDescuentos: "Total de Descuentos",
-      totalImpuestos: "Total de Impuestos (IVA)",
-      totalArticulos: "Total de Artículos Vendidos",
-      cantidadTransacciones: "Cantidad de Transacciones",
-      ticketPromedio: "Ticket Promedio",
-      totalProductos: "Total de Productos",
-      productosAgotados: "Productos Agotados",
-      productosConBajoStock: "Productos con Bajo Stock",
-      valorTotalInventario: "Valor Total del Inventario",
-      costoTotalInventario: "Costo Total del Inventario",
-      gananciaPotencial: "Ganancia Potencial",
-      totalClientes: "Total de Clientes",
-      clientesActivos: "Clientes Activos",
-      totalClientesInactivos: "Clientes Inactivos",
-      totalCompras: "Total de Compras"
+    const fmt = n => parseFloat(n || 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    const fmtMoney = n => "$" + fmt(n);
+
+    const moneyKeys = new Set(["totalVentas","totalDescuentos","totalImpuestos","ticketPromedio","valorTotalInventario","costoTotalInventario","gananciaPotencial","totalCompras"]);
+    const labels = {
+      totalVentas: "Ventas totales",
+      totalDescuentos: "Descuentos aplicados",
+      totalImpuestos: "IVA recaudado (19%)",
+      totalArticulos: "Artículos vendidos",
+      cantidadTransacciones: "N° transacciones",
+      ticketPromedio: "Ticket promedio",
+      totalProductos: "Productos en catálogo",
+      productosAgotados: "Productos agotados",
+      productosConBajoStock: "Productos con stock bajo (<10)",
+      valorTotalInventario: "Valor del inventario (venta)",
+      costoTotalInventario: "Costo total del inventario",
+      gananciaPotencial: "Margen potencial",
+      totalClientes: "Clientes totales",
+      clientesActivos: "Clientes activos",
+      totalClientesInactivos: "Clientes inactivos",
+      totalCompras: "Total invertido en compras"
     };
 
-    html += `<div style="margin-top: 1rem; border: 1px solid var(--border); padding: 1rem; border-radius: var(--radius); background: var(--bg-panel);">`;
+    const accentColors = {
+      "Reporte de Ventas": "var(--clr-primary)",
+      "Reporte de Inventario": "var(--clr-success)",
+      "Reporte de Clientes": "var(--clr-info)",
+      "Reporte de Compras": "var(--clr-warning)"
+    };
+    const accent = accentColors[reporte.tipo] || "var(--clr-primary)";
 
-    Object.keys(reporte).forEach(key => {
-      if (!['tipo', 'periodo', 'fecha'].includes(key)) {
-        const valor = reporte[key];
-        const label = dicc[key] || key;
-        
-        if (Array.isArray(valor)) {
-          html += `<h4 style="margin-top:1rem;">${label}:</h4>`;
-          if (valor.length === 0) {
-            html += `<p style="color:var(--text-muted);">No hay registros.</p>`;
-          } else {
-            html += `<ul style="padding-left:1.5rem;">`;
-            valor.forEach(v => {
-              if (v.nombre && v.stock !== undefined) {
-                html += `<li><strong>${v.nombre}</strong> - Stock: <span style="color:var(--danger);">${v.stock}</span></li>`;
-              } else {
-                html += `<li>${JSON.stringify(v)}</li>`;
-              }
-            });
-            html += `</ul>`;
-          }
-        } else {
-          const isMoney = ['totalVentas', 'totalDescuentos', 'totalImpuestos', 'ticketPromedio', 'valorTotalInventario', 'costoTotalInventario', 'gananciaPotencial', 'totalCompras'].includes(key);
-          const displayVal = isMoney ? `$${parseFloat(valor).toFixed(2)}` : valor;
-          html += `<div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; border-bottom:1px solid var(--border); padding-bottom:0.25rem;">
-                     <span><strong>${label}</strong></span>
-                     <span>${displayVal}</span>
-                   </div>`;
-        }
-      }
+    // Separar datos en escalares y arrays
+    const scalarRows = [];
+    const arrayBlocks = [];
+    Object.entries(reporte).forEach(([key, val]) => {
+      if (["tipo","periodo","fecha"].includes(key)) return;
+      if (Array.isArray(val)) arrayBlocks.push({ key, val, label: labels[key] || key });
+      else scalarRows.push({ key, val, label: labels[key] || key, isMoney: moneyKeys.has(key) });
     });
-    
-    html += `</div>`;
-    
-    // Gráfico interactivo si es reporte de ventas o inventario
-    if (['Reporte de Ventas', 'Reporte de Inventario'].includes(reporte.tipo)) {
-      html += `<div style="margin-top: 2rem; background: #fff; padding: 1rem; border-radius: 12px; height: 300px;">
-                 <canvas id="reportChart"></canvas>
-               </div>`;
-    }
 
-    html += `<div style="margin-top: 1.5rem; text-align: right;">
-               <button class="btn btn-secondary" onclick="window.print()" style="margin-right: 0.5rem;" class="no-print">🖨️ Imprimir</button>
-               <button class="btn btn-primary" onclick="closeModal()">Cerrar</button>
-             </div>`;
-    
+    let html = `
+      <div style="max-width:540px; margin:0 auto; font-family:'Inter',system-ui,sans-serif;">
+        <!-- Header -->
+        <div style="border-left:5px solid ${accent}; padding:0.75rem 1rem 0.75rem 1.25rem; margin-bottom:1.5rem; background:var(--bg-panel); border-radius:0 8px 8px 0;">
+          <h3 style="margin:0 0 0.25rem; font-size:1.15rem; color:var(--text-main);">${reporte.tipo}</h3>
+          <div style="font-size:0.82rem; color:var(--text-muted);">
+            ${reporte.periodo ? `<span>Período: <strong>${reporte.periodo}</strong> · </span>` : ""}
+            Generado: <strong>${reporte.fecha}</strong>
+          </div>
+        </div>
+
+        <!-- KPIs escalares -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+          ${scalarRows.map(r => `
+            <div style="background:var(--bg-panel); border:1px solid var(--border); border-radius:10px; padding:1rem 1.25rem;">
+              <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.35rem;">${r.label}</div>
+              <div style="font-size:1.4rem; font-weight:800; color:${r.isMoney ? accent : "var(--text-main)"};">${r.isMoney ? fmtMoney(r.val) : r.val}</div>
+            </div>
+          `).join("")}
+        </div>
+
+        <!-- Listas de arrays (ej. bajo stock) -->
+        ${arrayBlocks.map(b => `
+          <div style="margin-bottom:1.25rem;">
+            <h4 style="margin:0 0 0.75rem; font-size:0.9rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">${b.label}</h4>
+            ${b.val.length === 0
+              ? `<p style="color:var(--text-muted); font-size:0.87rem;">Sin registros.</p>`
+              : `<div class="table-container" style="max-height:220px; overflow-y:auto;">
+                  <table class="data-table" style="font-size:0.85rem;">
+                    <thead><tr><th>Producto</th><th>Stock</th><th>Precio</th></tr></thead>
+                    <tbody>
+                      ${b.val.map(v => `
+                        <tr>
+                          <td>${v.nombre || v.name || "—"}</td>
+                          <td><span class="badge badge-danger">${v.stock ?? "—"}</span></td>
+                          <td>${v.precio !== undefined ? fmtMoney(v.precio) : "—"}</td>
+                        </tr>
+                      `).join("")}
+                    </tbody>
+                  </table>
+                </div>`
+            }
+          </div>
+        `).join("")}
+
+        <!-- Acciones -->
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);" class="no-print">
+          <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
+          <button class="btn btn-primary" onclick="closeModal()">Cerrar</button>
+        </div>
+      </div>`;
+
     modalContent.innerHTML = html;
     openModal();
-
-    // Inicializar gráfico
-    if (['Reporte de Ventas', 'Reporte de Inventario'].includes(reporte.tipo)) {
-      const ctx = document.getElementById('reportChart').getContext('2d');
-      const isVentas = reporte.tipo === 'Reporte de Ventas';
-      
-      new Chart(ctx, {
-        type: isVentas ? 'bar' : 'pie',
-        data: {
-          labels: isVentas ? ['Subtotal', 'IVA', 'Total'] : ['Ventas', 'Descuentos', 'Impuestos'],
-          datasets: [{
-            label: 'Valores ($)',
-            data: isVentas ? [reporte.totalVentas, reporte.totalImpuestos, reporte.totalVentas] : [reporte.totalVentas, reporte.totalDescuentos, reporte.totalImpuestos],
-            backgroundColor: [
-              'rgba(59, 130, 246, 0.6)',
-              'rgba(16, 185, 129, 0.6)',
-              'rgba(139, 92, 246, 0.6)'
-            ],
-            borderColor: [
-              '#3b82f6',
-              '#10b981',
-              '#8b5cf6'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom' }
-          }
-        }
-      });
-    }
   } catch (e) {
     console.error(e);
     showToast("Error mostrando reporte", "error");
@@ -2140,25 +2145,33 @@ function renderUserManagement() {
 
 
 function _renderUserRows(usuariosList) {
-  if (usuariosList.length === 0) return '<tr><td colspan="5" style="text-align: center; padding: 2rem;">No hay usuarios</td></tr>';
-  
+  if (usuariosList.length === 0) return `<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted);">No hay usuarios registrados</td></tr>`;
+
   return usuariosList.map(u => `
     <tr>
       <td>
         <strong>${u.nombre}</strong><br>
-        <span style="font-size:0.85rem; color:var(--text-muted);">@${u.usuario}</span>
-      </td>
-      <td><span class="badge" style="background: ${u.rol === 'admin' ? 'var(--danger)' : 'var(--primary)'}; color: #000; font-weight: bold;">${u.rol.toUpperCase()}</span></td>
-      <td>${u.fechaCreacion}</td>
-      <td>
-        <button class="btn-small ${u.activo ? 'btn-success' : 'btn-danger'}" onclick="toggleUserStatus('${u.id}')" title="Alternar Estado" style="min-width:90px">
-          ${u.activo ? '✅ Activo' : '🚫 Inactivo'}
-        </button>
+        <span style="font-size:0.82rem; color:var(--text-muted);">@${u.usuario}</span>
+        ${u.email ? `<br><span style="font-size:0.78rem; color:var(--text-dim);">${u.email}</span>` : ''}
       </td>
       <td>
-        <button class="btn-small" style="background:var(--accent); color:white; margin-right:5px; border:none;" onclick="mostrarModalCambioPassword('${u.id}')">🔑 Pass</button>
-        <button class="btn-small btn-danger" style="margin-right:5px;" onclick="mostrarFormularioUsuario('${u.id}')">✏️ Editar</button>
-        <button class="btn-small" style="background:var(--danger); color:white; border:none;" onclick="deleteUsuario('${u.id}')">🗑️ Borrar</button>
+        <span class="badge ${u.rol === 'admin' ? 'badge-danger' : 'badge-info'}">${u.rol.toUpperCase()}</span>
+      </td>
+      <td style="font-size:0.82rem;">${u.fechaCreacion || '—'}</td>
+      <td>
+        <span class="badge ${u.activo ? 'badge-success' : 'badge-warning'}">
+          ${u.activo ? 'Activo' : 'Inactivo'}
+        </span>
+      </td>
+      <td>
+        <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+          <button class="btn btn-small btn-secondary" onclick="toggleUserStatus('${u.id}')" title="${u.activo ? 'Desactivar' : 'Activar'}">
+            ${u.activo ? '🔒 Desactivar' : '✅ Activar'}
+          </button>
+          <button class="btn btn-small btn-primary" onclick="mostrarFormularioUsuario('${u.id}')">✏️ Editar</button>
+          <button class="btn btn-small btn-info" onclick="mostrarModalCambioPassword('${u.id}')">🔑 Pass</button>
+          <button class="btn btn-small btn-danger" onclick="deleteUsuario('${u.id}')">🗑️</button>
+        </div>
       </td>
     </tr>
   `).join('');
@@ -2217,135 +2230,133 @@ function mostrarLoginModal() {
   openModal();
 }
 
-function mostrarFormularioUsuario(userId = null) {
+async function mostrarFormularioUsuario(userId = null) {
   const modalContent = document.getElementById("modal-content");
-  let user = userId ? state.usuarios.find(u => u.id === userId) : null;
+  const user = userId ? state.usuarios.find(u => u.id === userId) : null;
+
+  const MODULOS = [
+    { key: "home",        label: "Inicio" },
+    { key: "pos",         label: "Punto de venta" },
+    { key: "history",     label: "Historial ventas" },
+    { key: "missing",     label: "Faltantes" },
+    { key: "clientes",    label: "Clientes" },
+    { key: "products",    label: "Productos" },
+    { key: "categorias",  label: "Categorías" },
+    { key: "compras",     label: "Compras" },
+    { key: "proveedores", label: "Proveedores" },
+    { key: "descuentos",  label: "Descuentos" },
+    { key: "reports",     label: "Reportes" },
+    { key: "users",       label: "Usuarios" }
+  ];
+
+  const permisosActuales = user?.permisos || (window.PERMISOS?.cajero || []);
 
   modalContent.innerHTML = `
-    <h3>${user ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
+    <h3>${user ? "Editar Usuario" : "Nuevo Usuario"}</h3>
     <form id="user-form" class="form">
-      <label>Nombre completo:</label>
-      <input type="text" class="form-input" id="user-nombre" value="${user ? user.nombre : ''}" placeholder="Ej: Juan Pérez" required>
+      <label>Nombre completo *</label>
+      <input type="text" class="form-input" id="user-nombre" value="${user ? user.nombre : ""}" placeholder="Ej: Juan Pérez" required>
 
-      <label>Nombre de usuario (para iniciar sesión):</label>
-      <input type="text" class="form-input" id="user-usuario" value="${user ? user.usuario : ''}" placeholder="Ej: jperez" required autocomplete="off">
+      <label>Usuario (para iniciar sesión) *</label>
+      <input type="text" class="form-input" id="user-usuario" value="${user ? user.usuario : ""}" placeholder="Ej: jperez" required autocomplete="off">
 
-      <label>Rol:</label>
+      <label>Correo electrónico</label>
+      <input type="email" class="form-input" id="user-email" value="${user?.email || ""}" placeholder="correo@ejemplo.com">
+
+      <label>Rol *</label>
       <select class="form-input" id="user-rol" required>
-        <option value="cajero" ${user && user.rol === 'cajero' ? 'selected' : ''}>Cajero</option>
-        <option value="admin" ${user && user.rol === 'admin' ? 'selected' : ''}>Administrador</option>
+        <option value="cajero" ${user?.rol === "cajero" ? "selected" : ""}>Cajero</option>
+        <option value="admin" ${user?.rol === "admin" ? "selected" : ""}>Administrador</option>
       </select>
 
       ${!user ? `
-      <label>Contraseña:</label>
-      <input type="password" class="form-input" id="user-password" placeholder="Contraseña" required autocomplete="new-password">
+        <label>Contraseña * (mínimo 8 caracteres)</label>
+        <input type="password" class="form-input" id="user-password" placeholder="Contraseña" required minlength="8" autocomplete="new-password">
+        <label>Confirmar Contraseña *</label>
+        <input type="password" class="form-input" id="user-password-confirm" placeholder="Repetir contraseña" required minlength="8" autocomplete="new-password">
+      ` : ""}
 
-      <label>Confirmar Contraseña:</label>
-      <input type="password" class="form-input" id="user-password-confirm" placeholder="Confirmar contraseña" required>
-      ` : ''}
-        
-        <label style="margin-top: 1rem; display: block;">Permisos de Módulos (Vistas permitidas):</label>
-        <div id="user-permissions" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.5rem; margin-bottom: 1.5rem; background: var(--bg-body); padding: 1rem; border-radius: 0.5rem;">
-          ${(window.PERMISOS ? window.PERMISOS.admin : ["home","pos","history","missing","clientes","products","categorias","compras","proveedores","reports","users"]).map(permiso => {
-            let tienePermiso = user && user.permisos ? user.permisos.includes(permiso) : (user ? (window.PERMISOS && window.PERMISOS[user.rol] ? window.PERMISOS[user.rol].includes(permiso) : false) : false);
-            if (!user) tienePermiso = (window.PERMISOS && window.PERMISOS["cajero"] ? window.PERMISOS["cajero"].includes(permiso) : false);
-            const nombresPermisos = { home:'Inicio', pos:'TPV', history:'Historial', missing:'Faltantes', clientes:'Clientes', products:'Productos', categorias:'Categorías', compras:'Compras', proveedores:'Proveedores', descuentos:'Descuentos', reports:'Reportes', users:'Usuarios' };
-            return `<label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.9rem; cursor: pointer;">
-              <input type="checkbox" class="permiso-checkbox" value="${permiso}" ${tienePermiso ? 'checked' : ''}>
-              ${nombresPermisos[permiso] || permiso}
-            </label>`;
-          }).join('')}
-        </div>
-  
-        <button type="submit" class="btn btn-success">${user ? 'Guardar Cambios' : 'Crear Usuario'}</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-      </form>
-    `;
-    openModal();
+      <label style="margin-top: 1rem; display: block;">Módulos permitidos</label>
+      <div id="user-permissions" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 0.5rem; margin-bottom: 1.5rem; background: var(--bg-body); padding: 1rem; border-radius: 0.5rem;">
+        ${MODULOS.map(m => `
+          <label style="display:flex; align-items:center; gap:0.5rem; font-weight:normal; font-size:0.9rem; cursor:pointer;">
+            <input type="checkbox" class="permiso-checkbox" value="${m.key}" ${permisosActuales.includes(m.key) ? "checked" : ""}>
+            ${m.label}
+          </label>
+        `).join("")}
+      </div>
 
-    // Actualizar checkboxes de permisos según el rol seleccionado (para nuevos usuarios)
-    document.getElementById("user-rol").addEventListener("change", function() {
-      if (user) return; // No cambiar automáticamente si estamos editando
-      const nuevoRol = this.value;
-      const permitidosDefault = window.PERMISOS ? (window.PERMISOS[nuevoRol] || []) : [];
-      document.querySelectorAll(".permiso-checkbox").forEach(cb => {
-        cb.checked = permitidosDefault.includes(cb.value);
-      });
+      <button type="submit" class="btn btn-success">${user ? "Guardar Cambios" : "Crear Usuario"}</button>
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    </form>
+  `;
+  openModal();
+
+  // Al cambiar rol, actualizar checkboxes con permisos por defecto del rol
+  document.getElementById("user-rol").addEventListener("change", function () {
+    if (user) return;
+    const nuevoRol = this.value;
+    const defaults = window.PERMISOS?.[nuevoRol] || [];
+    document.querySelectorAll(".permiso-checkbox").forEach(cb => {
+      cb.checked = defaults.includes(cb.value);
     });
-  
-    document.getElementById("user-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const nombre = document.getElementById("user-nombre").value.trim();
-      const usuarioLogin = document.getElementById("user-usuario").value.trim();
-      const rol = document.getElementById("user-rol").value;
-      
-      const checkboxes = document.querySelectorAll(".permiso-checkbox");
-      const permisosSeleccionados = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+  });
 
-      if (!user) {
-        const p1 = document.getElementById("user-password").value;
-        const p2 = document.getElementById("user-password-confirm").value;
-  
-        if (p1 !== p2) {
-          showToast("Las contraseñas no coinciden", "error");
-          return;
-        }
-        
-        const roleMatch = state.usuarios.find(u => u.rol === rol);
-        const roleId = roleMatch ? roleMatch.roleId : null;
+  document.getElementById("user-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nombre = document.getElementById("user-nombre").value.trim();
+    const usuarioLogin = document.getElementById("user-usuario").value.trim();
+    const email = document.getElementById("user-email").value.trim();
+    const rol = document.getElementById("user-rol").value;
+    const permisosSeleccionados = Array.from(document.querySelectorAll(".permiso-checkbox:checked")).map(cb => cb.value);
 
+    if (!user) {
+      const p1 = document.getElementById("user-password").value;
+      const p2 = document.getElementById("user-password-confirm").value;
+      if (p1 !== p2) { showToast("Las contraseñas no coinciden", "error"); return; }
+      if (p1.length < 8) { showToast("La contraseña debe tener al menos 8 caracteres", "error"); return; }
+
+      if (localStorage.getItem("modoLocal") === "true") {
         const nuevoUser = {
-          nombre,
-          usuario: usuarioLogin,
-          fullName: nombre,
-          username: usuarioLogin,
-          password: p1,
-          roleId: roleId,
-          rol,
-          permisos: permisosSeleccionados,
-          activo: true
+          id: "USER-" + Date.now(),
+          nombre, usuario: usuarioLogin, email, rol, permisos: permisosSeleccionados, activo: true,
+          fechaCreacion: new Date().toLocaleDateString()
         };
-        
-        if (typeof saveSheetData === 'function') {
-          const saved = await saveSheetData("usuarios", nuevoUser);
-          if (saved && saved !== true) state.usuarios.push(saved);
-        } else {
-          nuevoUser.id = 'USER-' + rol.toUpperCase() + '-' + Date.now();
-          state.usuarios.push(nuevoUser);
-          saveToLocalStorage("usuarios", state.usuarios);
-        }
+        state.usuarios.push(nuevoUser);
+        saveToLocalStorage("usuarios", state.usuarios);
       } else {
-        const roleMatch = state.usuarios.find(u => u.rol === rol);
-        const roleId = roleMatch ? roleMatch.roleId : user.roleId;
-
-        const updatedUser = {
-          ...user,
-          nombre,
-          usuario: usuarioLogin,
-          fullName: nombre,
-          username: usuarioLogin,
-          roleId: roleId,
-          rol,
-          permisos: permisosSeleccionados
-        };
-
-        if (typeof saveSheetData === 'function') {
-          const saved = await saveSheetData("usuarios", updatedUser);
-          if (saved && saved !== true) Object.assign(user, saved);
-        } else {
-          Object.assign(user, updatedUser);
-          saveToLocalStorage("usuarios", state.usuarios);
-        }
+        try {
+          const result = await apiRequest("/users", {
+            method: "POST",
+            body: JSON.stringify({ fullName: nombre, username: usuarioLogin, email: email || null, rol, password: p1, permissions: permisosSeleccionados })
+          });
+          if (result.data) state.usuarios.push(mapUserFromAPI(result.data));
+        } catch (err) { showToast(err.message || "Error creando usuario", "error"); return; }
       }
+    } else {
+      if (localStorage.getItem("modoLocal") === "true") {
+        Object.assign(user, { nombre, usuario: usuarioLogin, email, rol, permisos: permisosSeleccionados });
+        saveToLocalStorage("usuarios", state.usuarios);
+      } else {
+        try {
+          const result = await apiRequest(`/users/${user.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ fullName: nombre, username: usuarioLogin, email: email || null, rol, permissions: permisosSeleccionados })
+          });
+          if (result.data) Object.assign(user, mapUserFromAPI(result.data));
+        } catch (err) { showToast(err.message || "Error actualizando usuario", "error"); return; }
+      }
+    }
 
     closeModal();
     showToast(user ? "Usuario actualizado" : "Usuario creado exitosamente", "success");
-    
-    // Si editamos nuestro propio perfil, refrescar permisos de la barra lateral
+
     if (user && state.usuarioActual && user.id === state.usuarioActual.id) {
-      if (typeof aplicarPermisosPorRol === 'function') aplicarPermisosPorRol();
+      state.usuarioActual = { ...state.usuarioActual, permisos: permisosSeleccionados };
+      localStorage.setItem("usuarioActual", JSON.stringify(state.usuarioActual));
+      if (typeof aplicarPermisosPorRol === "function") aplicarPermisosPorRol();
     }
-    
+
     renderUserManagement();
   });
 }
@@ -2367,29 +2378,33 @@ function filtrarUsuarios(tipo, btn = null) {
 }
 
 async function toggleUserStatus(userId) {
-  if (userId === "USER-ADMIN-001" || userId === state.usuarioActual?.id) {
-    showToast("No puedes desactivarte a ti mismo ni a la cuenta maestra.", "error");
+  if (userId === state.usuarioActual?.id) {
+    showToast("No puedes desactivarte a ti mismo.", "error");
     return;
   }
   const u = state.usuarios.find(x => x.id === userId);
   if (!u) return;
 
   const nuevoEstado = !u.activo;
-  u.activo = nuevoEstado;
 
-  if (typeof saveSheetData === "function") {
-    const saved = await saveSheetData("usuarios", u);
-    if (!saved) {
-      u.activo = !nuevoEstado; // revertir si falló
-      showToast("Error actualizando estado del usuario", "error");
-      renderUserManagement();
-      return;
-    }
-  } else {
+  if (localStorage.getItem("modoLocal") === "true") {
+    u.activo = nuevoEstado;
     saveToLocalStorage("usuarios", state.usuarios);
+    showToast(nuevoEstado ? "Usuario activado (local)" : "Usuario desactivado (local)", "warning");
+    renderUserManagement();
+    return;
   }
 
-  showToast(nuevoEstado ? "Usuario activado" : "Usuario desactivado", nuevoEstado ? "success" : "warning");
+  try {
+    const result = await apiRequest(`/users/${userId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ active: nuevoEstado })
+    });
+    u.activo = result.data?.active ?? nuevoEstado;
+    showToast(u.activo ? "Usuario activado" : "Usuario desactivado", u.activo ? "success" : "warning");
+  } catch (error) {
+    showToast(error.message || "Error actualizando estado del usuario", "error");
+  }
   renderUserManagement();
 }
 
@@ -2401,10 +2416,10 @@ async function mostrarModalCambioPassword(userId) {
   modalContent.innerHTML = `
     <h3>🔑 Cambiar contraseña de ${user.nombre}</h3>
     <form id="change-pass-form" class="form">
-      <label>Nueva Contraseña:</label>
-      <input type="password" class="form-input" id="new-password" required minlength="6">
+      <label>Nueva Contraseña (mínimo 8 caracteres):</label>
+      <input type="password" class="form-input" id="new-password" required minlength="8" autocomplete="new-password">
       <label>Confirmar Nueva Contraseña:</label>
-      <input type="password" class="form-input" id="new-password-confirm" required minlength="6">
+      <input type="password" class="form-input" id="new-password-confirm" required minlength="8" autocomplete="new-password">
       <button type="submit" class="btn btn-success">Guardar</button>
       <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
     </form>
@@ -2419,20 +2434,21 @@ async function mostrarModalCambioPassword(userId) {
       showToast("Las contraseñas no coinciden", "error");
       return;
     }
-    
-    if (typeof apiRequest === 'function' && localStorage.getItem("modoLocal") !== "true") {
+    if (p1.length < 8) {
+      showToast("La contraseña debe tener al menos 8 caracteres", "error");
+      return;
+    }
+
+    if (localStorage.getItem("modoLocal") !== "true") {
       try {
         await apiRequest(`/users/${userId}/password`, {
           method: "PATCH",
           body: JSON.stringify({ password: p1 })
         });
-      } catch (e) {
-        showToast("Error al actualizar la contraseña en el servidor", "error");
+      } catch (err) {
+        showToast(err.message || "Error al actualizar la contraseña", "error");
         return;
       }
-    } else {
-      user.contraseña = p1;
-      saveToLocalStorage('usuarios', state.usuarios);
     }
     showToast("Contraseña actualizada con éxito", "success");
     closeModal();
@@ -2440,21 +2456,30 @@ async function mostrarModalCambioPassword(userId) {
 }
 
 function deleteUsuario(userId) {
-  if (userId === "USER-ADMIN-001" || userId === state.usuarioActual.id) {
-    showToast("No puedes eliminar al administrador principal.", "error");
+  if (userId === state.usuarioActual?.id) {
+    showToast("No puedes eliminar tu propia cuenta.", "error");
     return;
   }
-  
-  customConfirm("¿Seguro que deseas eliminar este usuario de forma permanente?").then(async confirm => {
-    if (confirm) {
-      state.usuarios = state.usuarios.filter(u => u.id !== userId);
-      if (typeof deleteSheetData === 'function') {
-        await deleteSheetData('usuarios', userId);
-      } else {
-        saveToLocalStorage('usuarios', state.usuarios);
-      }
-      showToast('Usuario eliminado', 'success');
+
+  customConfirm("¿Seguro que deseas desactivar este usuario permanentemente? No podrá iniciar sesión.").then(async confirmed => {
+    if (!confirmed) return;
+
+    if (localStorage.getItem("modoLocal") === "true") {
+      const u = state.usuarios.find(x => x.id === userId);
+      if (u) { u.activo = false; saveToLocalStorage("usuarios", state.usuarios); }
+      showToast("Usuario desactivado (local)", "warning");
       renderUserManagement();
+      return;
+    }
+
+    try {
+      await apiRequest(`/users/${userId}`, { method: "DELETE" });
+      const u = state.usuarios.find(x => x.id === userId);
+      if (u) u.activo = false;
+      showToast("Usuario desactivado permanentemente", "warning");
+      renderUserManagement();
+    } catch (error) {
+      showToast(error.message || "Error al desactivar el usuario", "error");
     }
   });
 }
@@ -2830,7 +2855,7 @@ function renderDescuentosList() {
               <tr>
                 <td><strong>${d.nombre}</strong></td>
                 <td>
-                  <span class="badge" style="background:${d.tipo === 'porcentaje' ? 'rgba(99,102,241,0.15)' : 'rgba(16,185,129,0.15)'}; color:${d.tipo === 'porcentaje' ? '#818cf8' : '#34d399'}; padding:0.2rem 0.6rem; border-radius:99px; font-size:0.8rem;">
+                  <span class="badge ${d.tipo === 'porcentaje' ? 'badge-info' : 'badge-success'}">
                     ${d.tipo === 'porcentaje' ? '% Porcentaje' : '$ Monto fijo'}
                   </span>
                 </td>

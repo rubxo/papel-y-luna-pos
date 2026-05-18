@@ -140,13 +140,17 @@ function inicializarEventos() {
   // ---- Tema ----
   const themeBtn = document.getElementById("theme-btn") || document.querySelector(".dark-mode-btn");
   if (themeBtn) {
-    const isLight = localStorage.getItem("lightMode") === "true";
-    if (isLight) { document.body.classList.add("light-mode"); themeBtn.textContent = "☀️"; }
+    // Detectar preferencia: localStorage > prefers-color-scheme
+    const savedDark = localStorage.getItem("darkMode");
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = savedDark !== null ? savedDark === "true" : prefersDark;
+    if (isDark) { document.body.classList.add("dark-mode"); themeBtn.textContent = "☀️"; }
+    else { themeBtn.textContent = "🌙"; }
     themeBtn.addEventListener("click", () => {
-      document.body.classList.toggle("light-mode");
-      const isNowLight = document.body.classList.contains("light-mode");
-      localStorage.setItem("lightMode", isNowLight);
-      themeBtn.textContent = isNowLight ? "☀️" : "🌙";
+      document.body.classList.toggle("dark-mode");
+      const isNowDark = document.body.classList.contains("dark-mode");
+      localStorage.setItem("darkMode", isNowDark);
+      themeBtn.textContent = isNowDark ? "☀️" : "🌙";
     });
   }
 }

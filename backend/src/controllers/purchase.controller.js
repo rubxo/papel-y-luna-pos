@@ -1,5 +1,6 @@
-const { Purchase } = require("../models");
+const { Purchase, PurchaseItem } = require("../models");
 const { createPurchase } = require("../services/purchase.service");
+const { logAction } = require("../services/audit.service");
 
 async function listPurchases(_req, res, next) {
   try {
@@ -22,4 +23,30 @@ async function create(req, res, next) {
   }
 }
 
-module.exports = { listPurchases, create };
+async function remove(req, res, next) {
+  try {
+    const purchase = await Purchase.findByPk(req.params.id, { include: ["items"] });
+    if (!purchase) {
+      const error = new Error("Compra no encontrada");
+      error.status = 404;
+      throw error;
+    }
+
+    await PurchaseItem.destroy({ where: { purchaseId: purchase.id } });
+    await purchase.destroy();
+
+    await logAction({
+      userId: req.user.id,
+      action: "DELETE",
+      entity: "purchase",
+      entityId: purchase.id,
+      details: { purchaseNumber: purchase.purchaseNumber, total: purchase.total }
+    });
+
+    res.json({ success: true, message: "Compra eliminada" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = { listPurchases, create, remove };

@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: papel-luna-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run db:migrate && npm run db:seed
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: IVA_RATE
+        value: "0.19"
+      - key: LOW_STOCK_THRESHOLD
+        value: "10"
+      # Los siguientes se configuran manualmente en el panel de Render:
+      # JWT_SECRET     → clave aleatoria de ≥32 chars
+      # FRONTEND_URL   → https://papelyluna.netlify.app
+      # DB_HOST        → host del servicio MySQL de Render
+      # DB_PORT        → 3306
+      # DB_NAME        → papel_luna_pos
+      # DB_USER        → usuario MySQL
+      # DB_PASSWORD    → password MySQL

@@ -7,5 +7,6 @@ const { createPurchaseSchema } = require("../validators/purchase.validator");
 router.use(authRequired);
 router.get("/", requireRole("admin"), controller.listPurchases);
 router.post("/", requireRole("admin"), validate(createPurchaseSchema), controller.create);
+router.delete("/:id", requireRole("admin"), controller.remove);
 
 module.exports = router;
