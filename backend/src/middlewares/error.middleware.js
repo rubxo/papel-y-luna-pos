@@ -13,6 +13,10 @@ function errorHandler(error, _req, res, _next) {
     error.message || error.name || ""
   );
 
+  if (status >= 500) {
+    console.error("[ERROR 500]", error.name, error.message, error.stack);
+  }
+
   let message;
   if (isDatabaseOffline) {
     message = "La base de datos no está disponible en este momento.";
