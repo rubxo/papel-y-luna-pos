@@ -59,9 +59,9 @@ function createApp() {
     res.json({
       success: true,
       authors: [
-        { id: 1, name: "Gabriel García Márquez" },
-        { id: 2, name: "Isabel Allende" },
-        { id: 3, name: "Jorge Luis Borges" }
+        { id: 1, name: "Juan David Rubio Aranguren" },
+        { id: 2, name: "Yeison David Niño Arias" },
+        { id: 3, name: "Juan Camilo Estevez" }
       ]
     });
   });
