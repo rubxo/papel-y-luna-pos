@@ -13,6 +13,9 @@ const sanitizeIds = require("./middlewares/sanitize-ids.middleware");
 function createApp() {
   const app = express();
 
+  // Render (y la mayoría de PaaS) ponen un proxy delante — necesario para rate-limit e IPs reales
+  app.set("trust proxy", 1);
+
   app.use(helmet({ contentSecurityPolicy: false }));
   const allowedOrigins = env.nodeEnv === "development"
     ? true
