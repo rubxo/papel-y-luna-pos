@@ -9,7 +9,7 @@ module.exports = {
       {
         id: randomUUID(),
         name: "Descuento estudiante",
-        type: "percentage",
+        type: "porcentaje",
         value: 5,
         description: "5% para estudiantes con carné",
         active: true,
@@ -19,7 +19,7 @@ module.exports = {
       {
         id: randomUUID(),
         name: "Descuento al por mayor",
-        type: "percentage",
+        type: "porcentaje",
         value: 10,
         description: "10% en compras de 5 unidades o más del mismo producto",
         active: true,
@@ -29,7 +29,7 @@ module.exports = {
       {
         id: randomUUID(),
         name: "Promoción escolar",
-        type: "percentage",
+        type: "porcentaje",
         value: 15,
         description: "15% en temporada de regreso a clases",
         active: false,
@@ -39,7 +39,7 @@ module.exports = {
       {
         id: randomUUID(),
         name: "Descuento fijo $2.000",
-        type: "fixed",
+        type: "monto",
         value: 2000,
         description: "Descuento fijo de $2.000 en cualquier compra",
         active: true,
