@@ -54,6 +54,18 @@ function createApp() {
 
   app.use("/api", routes);
 
+  // Nueva ruta de autores expuesta directamente (ej. tuservidor.com/authors)
+  app.get("/authors", (req, res) => {
+    res.json({
+      success: true,
+      authors: [
+        { id: 1, name: "Gabriel García Márquez" },
+        { id: 2, name: "Isabel Allende" },
+        { id: 3, name: "Jorge Luis Borges" }
+      ]
+    });
+  });
+
   const frontendRoot = path.resolve(__dirname, "..", "..");
   app.use(express.static(frontendRoot));
   app.get("/", (_req, res) => {

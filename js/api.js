@@ -254,19 +254,23 @@ async function loadAllDataFromAPI(silent = false) {
     state.descuentos = descuentos;
     if (usuarios.length) {
       state.usuarios = usuarios.filter(u => u.rol !== "encargado");
-      // Si el admin cambió los permisos o el estado del usuario actual, sincronizar sin requerir re-login
-      if (state.usuarioActual) {
-        const miUsuario = state.usuarios.find(u => u.id === state.usuarioActual.id);
-        if (miUsuario) {
-          const permisosChanged = JSON.stringify(miUsuario.permisos) !== JSON.stringify(state.usuarioActual.permisos);
-          const activoChanged = miUsuario.activo !== state.usuarioActual.activo;
+    }
+
+    // Siempre sincronizar permisos del usuario actual desde /auth/me (funciona para cajero y admin)
+    if (state.usuarioActual && localStorage.getItem("modoLocal") !== "true") {
+      try {
+        const meResult = await apiRequest("/auth/me");
+        if (meResult && meResult.user) {
+          const updatedUser = mapUserFromAPI(meResult.user);
+          const permisosChanged = JSON.stringify(updatedUser.permisos) !== JSON.stringify(state.usuarioActual.permisos);
+          const activoChanged = updatedUser.activo !== state.usuarioActual.activo;
           if (permisosChanged || activoChanged) {
-            state.usuarioActual = { ...state.usuarioActual, permisos: miUsuario.permisos, activo: miUsuario.activo };
+            state.usuarioActual = { ...state.usuarioActual, permisos: updatedUser.permisos, activo: updatedUser.activo };
             localStorage.setItem("usuarioActual", JSON.stringify(state.usuarioActual));
             if (typeof aplicarPermisosPorRol === "function") aplicarPermisosPorRol();
           }
         }
-      }
+      } catch (_e) {}
     }
 
     if (!silent) {
