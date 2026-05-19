@@ -48,7 +48,8 @@ function createApp() {
     windowMs: 15 * 60 * 1000,
     limit: 80,
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    validate: { xForwardedForHeader: false }
   }));
 
   app.use("/api", routes);
