@@ -2845,6 +2845,7 @@ window.editarProductoEnCaliente = async function(productoId) {
           showToast('Precio inválido', 'error');
       }
   }
+}
 
 // =====================================================================
 // MÓDULO DE DESCUENTOS
@@ -3062,4 +3063,3 @@ async function eliminarDescuento(id) {
     showToast(error.message || "Error eliminando descuento", "error");
   }
 }
-};
