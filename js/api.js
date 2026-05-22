@@ -576,6 +576,13 @@ function seedLocalDemoData() {
   localStorage.setItem("backup_ventas", JSON.stringify([]));
   localStorage.setItem("compras", JSON.stringify([]));
   localStorage.setItem("backup_compras", JSON.stringify([]));
+  const descuentosDemo = [
+    { id: "LOCAL-DESC-001", nombre: "Descuento estudiante", tipo: "porcentaje", valor: 5, descripcion: "Aplica para estudiantes con carné", activo: true },
+    { id: "LOCAL-DESC-002", nombre: "Descuento al por mayor", tipo: "porcentaje", valor: 10, descripcion: "Para compras mayores de 5 items", activo: true },
+    { id: "LOCAL-DESC-003", nombre: "Descuento fijo $2.000", tipo: "monto", valor: 2000, descripcion: "", activo: true }
+  ];
+  localStorage.setItem("descuentos", JSON.stringify(descuentosDemo));
+  localStorage.setItem("backup_descuentos", JSON.stringify(descuentosDemo));
   const usuarios = [
     { id: "LOCAL-ADMIN", nombre: "Administrador", usuario: "admin", rol: "admin", activo: true, fechaCreacion: new Date().toLocaleDateString() },
     { id: "LOCAL-CAJERO", nombre: "Cajero Principal", usuario: "cajero", rol: "cajero", activo: true, fechaCreacion: new Date().toLocaleDateString() }

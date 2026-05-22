@@ -333,6 +333,15 @@ function renderPOS() {
         <!-- Descuento -->
         <div style="margin-top:0.75rem; padding:0.75rem; background:var(--glass-light); border-radius:8px; border:1px solid var(--glass-border);">
           <div style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.5rem;">Descuento</div>
+          ${(state.descuentos || []).filter(d => d.activo !== false).length > 0 ? `
+          <select id="discount-preset" onchange="seleccionarDescuentoPredefinido()"
+            style="width:100%; margin-bottom:0.5rem; padding:0.5rem; border:1px solid var(--glass-border); border-radius:6px; background:var(--bg-input); color:var(--text-main); font-family:inherit; font-size:0.875rem;">
+            <option value="">— Seleccionar descuento predefinido —</option>
+            ${(state.descuentos || []).filter(d => d.activo !== false).map(d =>
+              `<option value="${d.id}" data-tipo="${d.tipo}" data-valor="${d.valor}">${d.nombre} (${d.tipo === 'porcentaje' ? d.valor + '%' : '$' + Number(d.valor).toFixed(2)})</option>`
+            ).join('')}
+          </select>
+          ` : ''}
           <div style="display:flex; gap:0.5rem;">
             <input type="number" id="discount-input" placeholder="Valor" min="0" step="0.01"
               style="flex:2; padding:0.5rem 0.75rem; border:1px solid var(--glass-border); border-radius:6px; background:var(--bg-input); color:var(--text-main); font-family:inherit; font-size:0.875rem;">
@@ -451,6 +460,16 @@ function aplicarDescuentoCarrito() {
   discountInput.value = "";
 }
 
+function seleccionarDescuentoPredefinido() {
+  const select = document.getElementById("discount-preset");
+  if (!select || !select.value) return;
+  const opt = select.options[select.selectedIndex];
+  const input = document.getElementById("discount-input");
+  const typeSelect = document.getElementById("discount-type");
+  if (input) input.value = opt.dataset.valor;
+  if (typeSelect) typeSelect.value = opt.dataset.tipo;
+}
+
 async function editarProductoPOS(productoId) {
   const product = getProductById(productoId);
   if (!product) return;
@@ -552,22 +571,29 @@ async function procesarPago() {
     state.ventaActual.clienteId = clienteId;
   }
 
-  const ventaParaMostrar = {
-    id: state.ventaActual.id,
-    fecha: state.ventaActual.fecha,
-    items: [...state.ventaActual.items],
-    subtotal: state.ventaActual.subtotal,
-    descuento: state.ventaActual.descuento,
-    impuesto: state.ventaActual.impuesto,
-    total: state.ventaActual.total,
-    metodoPago: method,
-    cambio: method === "efectivo" ? amount - state.ventaActual.total : 0
-  };
+  const confirmBtn = document.querySelector("#modal-content .btn-success");
+  setButtonLoading(confirmBtn, true);
 
-  const success = await closeSale(method, amount);
-  if (success) {
-    closeModal();
-    mostrarComprobante(ventaParaMostrar);
+  try {
+    const ventaParaMostrar = {
+      id: state.ventaActual.id,
+      fecha: state.ventaActual.fecha,
+      items: [...state.ventaActual.items],
+      subtotal: state.ventaActual.subtotal,
+      descuento: state.ventaActual.descuento,
+      impuesto: state.ventaActual.impuesto,
+      total: state.ventaActual.total,
+      metodoPago: method,
+      cambio: method === "efectivo" ? amount - state.ventaActual.total : 0
+    };
+
+    const success = await closeSale(method, amount);
+    if (success) {
+      closeModal();
+      mostrarComprobante(ventaParaMostrar);
+    }
+  } finally {
+    setButtonLoading(confirmBtn, false);
   }
 }
 
@@ -1114,6 +1140,20 @@ function showToast(message, type = "info") {
   container.appendChild(toast);
   setTimeout(() => toast.classList.add("show"), 10);
   setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+function setButtonLoading(btn, loading) {
+  if (!btn) return;
+  if (loading) {
+    btn.dataset.originalText = btn.innerHTML;
+    btn.innerHTML = "⏳ Cargando...";
+    btn.disabled = true;
+    btn.style.opacity = "0.75";
+  } else {
+    btn.innerHTML = btn.dataset.originalText || btn.innerHTML;
+    btn.disabled = false;
+    btn.style.opacity = "";
+  }
 }
 
 // ===== NEW VIEWS FOR MVP 2 =====
@@ -2963,6 +3003,8 @@ async function guardarDescuento(id) {
   if (tipo === "porcentaje" && valorRaw > 100) { showToast("El porcentaje no puede superar 100%", "error"); return; }
 
   const payload = { nombre, tipo, valor: valorRaw, descripcion, activo };
+  const saveBtn = document.querySelector("#form-descuento .btn-success");
+  setButtonLoading(saveBtn, true);
 
   if (localStorage.getItem("modoLocal") === "true") {
     if (id) {
@@ -2995,6 +3037,7 @@ async function guardarDescuento(id) {
     renderDescuentosList();
   } catch (error) {
     showToast(error.message || "Error guardando descuento", "error");
+    setButtonLoading(saveBtn, false);
   }
 }
 
